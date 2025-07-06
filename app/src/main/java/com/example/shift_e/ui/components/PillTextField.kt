@@ -16,6 +16,8 @@ fun PillTextField(
     isPassword: Boolean = false,
     enabled: Boolean = true,
     placeholder: String = "",
+    leadingIcon: @Composable (() -> Unit)? = null,
+    trailingIcon: @Composable (() -> Unit)? = null,
 ) {
     OutlinedTextField(
         value = value,
