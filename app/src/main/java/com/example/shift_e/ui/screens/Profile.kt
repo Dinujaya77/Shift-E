@@ -11,11 +11,11 @@ import com.example.shift_e.ui.theme.TealDark
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun DashboardScreen(navController: NavController, username: String = "user") {
+fun ProfileScreen(navController: NavController, username: String = "user") {
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(text = "Dashboard") },
+                title = { Text(text = "Profile") },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = TealDark,
                     titleContentColor = MaterialTheme.colorScheme.onPrimary
