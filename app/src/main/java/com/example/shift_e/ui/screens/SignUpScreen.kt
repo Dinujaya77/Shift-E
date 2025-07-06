@@ -70,7 +70,7 @@ fun SignUpScreen(navController: NavController) {
                 style = MaterialTheme.typography.titleMedium,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(bottom = 12.dp)
+                    .padding(bottom = 16.dp)
             )
 
             // 5) Email field
@@ -81,7 +81,7 @@ fun SignUpScreen(navController: NavController) {
                 placeholder = "Enter your email",
                 isPassword = false
             )
-            Spacer(Modifier.height(38.dp))
+            Spacer(Modifier.height(50.dp))
 
             // 6) NEXT button
             PillButton(
@@ -122,7 +122,7 @@ fun SignUpScreen(navController: NavController) {
                 Spacer(Modifier.width(8.dp))
                 Text("Sign up with Google", fontSize = 14.sp)
             }
-            Spacer(Modifier.height(20.dp))
+            Spacer(Modifier.height(150.dp))
 
             // 8) Footer link back to Login
             Row(horizontalArrangement = Arrangement.Center) {
