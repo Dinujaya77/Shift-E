@@ -6,7 +6,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import com.example.shift_e.ui.screens.LoginScreen
-//import com.example.shift_e.ui.screens.SignUpScreen
+import com.example.shift_e.ui.screens.SignUpScreen
 //import com.example.shift_e.ui.screens.SignUpOtpScreen
 
 @Composable
@@ -15,9 +15,9 @@ fun AppNavGraph(navController: NavHostController, startDestination: String = "lo
         composable("login") {
             LoginScreen(navController)
         }
-//        composable("signup") {
-//            SignUpScreen(navController)
-//        }
+        composable("signup") {
+            SignUpScreen(navController)
+        }
         composable(
             "signup_otp?email={email}",
             arguments = listOf(navArgument("email") { defaultValue = "" })
