@@ -106,21 +106,23 @@ fun LoginScreen(navController: NavController) {
             PillButton(
                 text = "LOGIN",
                 onClick = {
-                    showToast = when {
+                    when {
                         username.isBlank() || password.isBlank() ->
-                            "Please enter username and password"
+                            showToast = "Please enter username and password"
                         username != "user" || password != "password123" ->
-                            "Invalid credentials"
+                            showToast = "Invalid credentials"
                         else -> {
-                            navController.navigate("dashboard")
-                            null
+                            // pass username through the route
+                            navController.navigate("dashboard?username=$username") {
+                                // clear backstack so “Back” exits the app
+                                popUpTo("login") { inclusive = true }
+                            }
                         }
                     }
                 },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(48.dp)
+                modifier = Modifier.fillMaxWidth().height(48.dp)
             )
+
             Spacer(Modifier.height(20.dp))
 
             // 6) Google button
