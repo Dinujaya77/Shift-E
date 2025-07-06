@@ -5,6 +5,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
+import com.example.shift_e.ui.screens.DashboardScreen
 import com.example.shift_e.ui.screens.LoginScreen
 import com.example.shift_e.ui.screens.ProfileCreationScreen
 import com.example.shift_e.ui.screens.SignUpOtpScreen
@@ -42,8 +43,14 @@ fun AppNavGraph(navController: NavHostController, startDestination: String = "lo
             ProfileCreationScreen(navController)
         }
 //        // 5) Dashboard
-//        composable("dashboard") {
-//            DashboardScreen(navController)
-//        }
+        composable(
+        route = "dashboard?username={username}",
+        arguments = listOf(navArgument("username") {
+            defaultValue = "user"
+        })
+    ) { backStack ->
+        val user = backStack.arguments?.getString("username") ?: "user"
+        DashboardScreen(navController, username = user)
+    }
     }
 }
