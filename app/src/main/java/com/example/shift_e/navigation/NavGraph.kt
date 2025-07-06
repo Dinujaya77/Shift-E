@@ -6,6 +6,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import com.example.shift_e.ui.screens.LoginScreen
+import com.example.shift_e.ui.screens.ProfileCreationScreen
 import com.example.shift_e.ui.screens.SignUpOtpScreen
 import com.example.shift_e.ui.screens.SignUpScreen
 //import com.example.shift_e.ui.screens.SignUpOtpScreen
@@ -36,10 +37,10 @@ fun AppNavGraph(navController: NavHostController, startDestination: String = "lo
             val email = backStack.arguments?.getString("email") ?: ""
             SignUpOtpScreen(navController, email)
         }
-        // 4) Profile creation (after OTP)
-//        composable("profile") {
-//            ProfileCreationScreen(navController)
-//        }
+//         4) Profile creation (after OTP)
+        composable("profile") {
+            ProfileCreationScreen(navController)
+        }
 //        // 5) Dashboard
 //        composable("dashboard") {
 //            DashboardScreen(navController)
