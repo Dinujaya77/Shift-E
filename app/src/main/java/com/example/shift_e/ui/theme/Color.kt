@@ -2,10 +2,16 @@ package com.example.shift_e.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
-val Purple80 = Color(0xFFD0BCFF)
-val PurpleGrey80 = Color(0xFFCCC2DC)
-val Pink80 = Color(0xFFEFB8C8)
+// Primary branding green
+val GreenPrimary    = Color(0xFF8CBF26)
+// Dark accent for buttons and text
+val TealDark        = Color(0xFF1E404F)
+// Light cream background
+val CreamBackground = Color(0xFFF5F6EE)
 
-val Purple40 = Color(0xFF6650a4)
-val PurpleGrey40 = Color(0xFF625b71)
-val Pink40 = Color(0xFF7D5260)
+// Standard Material neutrals
+val GrayLight       = Color(0xFFE0E0E0)
+val GrayDark        = Color(0xFF616161)
+
+
+val BlackLight        = Color(0xFF1E1D1D)
