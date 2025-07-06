@@ -12,11 +12,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.PasswordVisualTransformation
-import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
@@ -24,121 +21,155 @@ import com.example.shift_e.R
 import com.example.shift_e.ui.components.PillButton
 import com.example.shift_e.ui.components.PillTextField
 import com.example.shift_e.ui.components.ShowToast
+import com.example.shift_e.ui.theme.BlackLight
+import com.example.shift_e.ui.theme.CreamBackground
+import com.example.shift_e.ui.theme.TealDark
 
 @Composable
 fun LoginScreen(navController: NavController) {
-    val context = LocalContext.current
     var username by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var showToast by remember { mutableStateOf<String?>(null) }
 
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
-    ) {
-        // Header image
+    Box(Modifier.fillMaxSize()) {
+        // 1) Header image
         Image(
-            painter = painterResource(id = R.drawable.login_background), // TODO: Replace with your asset
-            contentDescription = "Header Background",
+            painter = painterResource(R.drawable.login_background),
+            contentDescription = null,
             contentScale = ContentScale.Crop,
             modifier = Modifier
                 .fillMaxWidth()
-                .height(260.dp)
-                .align(Alignment.TopCenter)
+                .height(300.dp)
         )
 
-        // Main Card
+        Text(
+                text = "Sign In",
+                color = Color.White,
+                style = MaterialTheme.typography.displayMedium.copy(fontWeight = FontWeight.Bold),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .offset(y=195.dp, x = 20.dp)
+            )
+
+        // 2) Cream card with rounded top corners
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .align(Alignment.TopCenter)
-                .padding(top = 180.dp, start = 16.dp, end = 16.dp)
-                .clip(RoundedCornerShape(32.dp))
-                .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.95f))
-                .padding(24.dp),
+                .fillMaxHeight()
+                .offset(y = 260.dp)
+                .clip(RoundedCornerShape(topStart = 32.dp, topEnd = 32.dp))
+                .background(CreamBackground)
+                .padding(horizontal = 24.dp, vertical = 32.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
+
+
             Text(
-                text = "Sign In",
-                style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Bold),
-                modifier = Modifier.padding(bottom = 16.dp)
+                text = "Username",
+                color = BlackLight,
+                style = MaterialTheme.typography.titleMedium,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 12.dp)
             )
+
+            // 4a) Username field
             PillTextField(
                 value = username,
                 onValueChange = { username = it },
-                label = "Username",
+                modifier = Modifier.fillMaxWidth(),
+                placeholder = "Enter your username",
+                isPassword = false
+            )
+            Spacer(Modifier.height(16.dp))
+
+            Text(
+                text = "Password",
+                color = BlackLight,
+                style = MaterialTheme.typography.titleMedium,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(vertical = 4.dp)
+                    .padding(bottom = 12.dp)
             )
+
+            // 4b) Password field
             PillTextField(
                 value = password,
                 onValueChange = { password = it },
-                label = "Password",
-                isPassword = true,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 4.dp)
+                modifier = Modifier.fillMaxWidth(),
+                placeholder = "Enter your password",
+                isPassword = true
             )
+            Spacer(Modifier.height(38.dp))
+
+            // 5) LOGIN button
             PillButton(
                 text = "LOGIN",
                 onClick = {
-                    when {
-                        username.isBlank() || password.isBlank() -> showToast = "Please enter username and password"
-                        username != "user" || password != "password123" -> showToast = "Invalid credentials"
-                        else -> navController.navigate("dashboard") // TODO: Replace with real navigation
+                    showToast = when {
+                        username.isBlank() || password.isBlank() ->
+                            "Please enter username and password"
+                        username != "user" || password != "password123" ->
+                            "Invalid credentials"
+                        else -> {
+                            navController.navigate("dashboard")
+                            null
+                        }
                     }
                 },
                 modifier = Modifier
-                    .padding(top = 16.dp, bottom = 8.dp)
+                    .fillMaxWidth()
                     .height(48.dp)
             )
-            // Google Sign-In (disabled)
+            Spacer(Modifier.height(20.dp))
+
+            // 6) Google button
             OutlinedButton(
                 onClick = { showToast = "Feature under implementation" },
-                enabled = false,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(48.dp)
-                    .padding(vertical = 4.dp),
-                shape = RoundedCornerShape(50)
+                    .height(48.dp),
+                shape = RoundedCornerShape(50),
+                colors = ButtonDefaults.outlinedButtonColors(
+                    contentColor = Color.Gray,
+                    containerColor = Color.White
+                ),
+                border = ButtonDefaults.outlinedButtonBorder.copy(width = 1.dp)
             ) {
                 Icon(
-                    painter = painterResource(id = R.drawable.google), // TODO: Replace with Google icon asset
-                    contentDescription = "Google",
-                    modifier = Modifier.size(24.dp)
+                    painter = painterResource(R.drawable.google),
+                    contentDescription = null,
+                    modifier = Modifier.size(20.dp)
                 )
-                Spacer(modifier = Modifier.width(8.dp))
-                Text("Sign in with Google")
+                Spacer(Modifier.width(8.dp))
+                Text("Sign in with Google", fontSize = 14.sp)
             }
-            // Forgot password
+            Spacer(Modifier.height(20.dp))
+
+            // 7) Forgot password
             Text(
-                text = "Forgot password?",
-                color = MaterialTheme.colorScheme.primary,
+                "Forgot password?",
+                color = TealDark,
+                fontSize = 14.sp,
                 modifier = Modifier
                     .align(Alignment.End)
-                    .padding(top = 8.dp)
-                    .clickable { navController.navigate("forgot_password") },
-                fontSize = 14.sp
+                    .clickable { navController.navigate("forgot_password") }
             )
-            // Footer
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 24.dp),
-                horizontalArrangement = Arrangement.Center
-            ) {
-                Text("Don't have an account? ")
+            Spacer(Modifier.height(100.dp))
+
+            // 8) Footer
+            Row(horizontalArrangement = Arrangement.Center) {
+                Text("Don't have an account? ", color = Color.Gray)
                 Text(
-                    text = "Sign up",
-                    color = MaterialTheme.colorScheme.primary,
+                    "Sign up",
+                    color = TealDark,
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier.clickable { navController.navigate("signup") }
                 )
             }
         }
-        // Show Toast
+
+        // 9) Show toast if needed
         showToast?.let {
             ShowToast(it)
             showToast = null

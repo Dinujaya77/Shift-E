@@ -5,8 +5,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.unit.dp
 
 @Composable
 fun PillButton(
@@ -14,14 +12,16 @@ fun PillButton(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
-    color: Color = MaterialTheme.colorScheme.primary
 ) {
     Button(
         onClick = onClick,
         modifier = modifier.fillMaxWidth(),
         enabled = enabled,
         shape = RoundedCornerShape(50),
-        colors = ButtonDefaults.buttonColors(containerColor = color)
+        colors = ButtonDefaults.buttonColors(
+            containerColor = MaterialTheme.colorScheme.primary,
+            contentColor = MaterialTheme.colorScheme.onPrimary
+        )
     ) {
         Text(text)
     }
