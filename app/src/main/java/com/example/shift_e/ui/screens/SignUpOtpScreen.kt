@@ -24,6 +24,7 @@ import com.example.shift_e.R
 import com.example.shift_e.ui.components.PillButton
 import com.example.shift_e.ui.components.PillTextField
 import com.example.shift_e.ui.components.ShowToast
+import com.example.shift_e.ui.components.SuccessDialog
 import com.example.shift_e.ui.theme.BlackLight
 import com.example.shift_e.ui.theme.CreamBackground
 import com.example.shift_e.ui.theme.TealDark
@@ -34,6 +35,7 @@ fun SignUpOtpScreen(navController: NavController, email: String) {
     var password by remember { mutableStateOf("") }
     var rePassword by remember { mutableStateOf("") }
     var showToast by remember { mutableStateOf<String?>(null) }
+    var showSuccess by remember { mutableStateOf(false) }
 
     Box(Modifier.fillMaxSize()) {
         // 1) Header image
@@ -128,16 +130,15 @@ fun SignUpOtpScreen(navController: NavController, email: String) {
             PillButton(
                 text = "CREATE ACCOUNT",
                 onClick = {
-                    showToast = when {
+                    when {
                         otp.isBlank() || password.isBlank() || rePassword.isBlank() ->
-                            "Please fill all fields"
+                            showToast = "Please fill all fields"
                         otp != "1234" ->
-                            "Invalid OTP"
+                            showToast = "Invalid OTP"
                         password != rePassword ->
-                            "Passwords do not match"
+                            showToast = "Passwords do not match"
                         else -> {
-                            navController.navigate("profile")
-                            null
+                            showSuccess = true        // <-- Show the pop‑up instead of navController.navigate()
                         }
                     }
                 },
@@ -168,6 +169,19 @@ fun SignUpOtpScreen(navController: NavController, email: String) {
         showToast?.let {
             ShowToast(it)
             showToast = null
+        }
+
+        if (showSuccess) {
+            SuccessDialog(
+                message = "Account created successfully!\nLet’s finish your profile.",
+                onButtonClick = {
+                    showSuccess = false
+                    navController.navigate("profile")
+                },
+                onDismiss = {
+                    showSuccess = false
+                }
+            )
         }
     }
 }
