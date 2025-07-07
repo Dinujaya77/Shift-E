@@ -6,6 +6,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import com.example.shift_e.ui.screens.DashboardScreen
+import com.example.shift_e.ui.screens.DriverScreen
 import com.example.shift_e.ui.screens.LoginScreen
 import com.example.shift_e.ui.screens.PaymentScreen
 import com.example.shift_e.ui.screens.ProfileCreationScreen
@@ -51,6 +52,9 @@ fun AppNavGraph(navController: NavHostController, startDestination: String = "lo
         }
         composable("payment") {
             PaymentScreen(navController)
+        }
+        composable("driverscreen") {
+            DriverScreen(navController)
         }
         composable("profile") {
             ProfileScreen(navController)
