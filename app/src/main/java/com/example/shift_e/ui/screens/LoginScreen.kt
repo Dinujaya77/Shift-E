@@ -7,6 +7,9 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -39,6 +42,7 @@ fun LoginScreen(navController: NavController) {
     var showToast by remember { mutableStateOf<String?>(null) }
     val passwordRequester= remember { FocusRequester() }
     val focusManager     = LocalFocusManager.current
+    var passwordVisible by remember { mutableStateOf(false) }
 
     Box(Modifier.fillMaxSize()) {
         // 1) Header image
@@ -116,7 +120,7 @@ fun LoginScreen(navController: NavController) {
                     .fillMaxWidth()
                     .focusRequester(passwordRequester),
                 placeholder     = "Enter your password",
-                isPassword      = true,
+                isPassword      = !passwordVisible,
                 keyboardOptions = KeyboardOptions(
                     keyboardType = KeyboardType.Password,
                     imeAction    = ImeAction.Done
@@ -136,7 +140,20 @@ fun LoginScreen(navController: NavController) {
                             }
                         }
                     }
-                )
+                ),
+                trailingIcon = {
+                    IconButton(onClick = { passwordVisible = !passwordVisible }) {
+                        Icon(
+                            imageVector = if (passwordVisible)
+                                Icons.Default.Visibility
+                            else
+                                Icons.Default.VisibilityOff,
+                            contentDescription = if (passwordVisible)
+                                "Hide password" else "Show password",
+                            tint = MaterialTheme.colorScheme.primary
+                        )
+                    }
+                }
             )
             Spacer(Modifier.height(38.dp))
 
