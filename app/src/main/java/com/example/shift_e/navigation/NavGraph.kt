@@ -44,7 +44,7 @@ fun AppNavGraph(navController: NavHostController, startDestination: String = "lo
             SignUpOtpScreen(navController, email)
         }
 //         4) Profile creation (after OTP)
-        composable("profile") {
+        composable("profilecreation") {
             ProfileCreationScreen(navController)
         }
         composable("trips") {
