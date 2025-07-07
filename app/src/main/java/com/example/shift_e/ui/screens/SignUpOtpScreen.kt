@@ -5,18 +5,26 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
@@ -29,16 +37,21 @@ import com.example.shift_e.ui.theme.BlackLight
 import com.example.shift_e.ui.theme.CreamBackground
 import com.example.shift_e.ui.theme.TealDark
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SignUpOtpScreen(navController: NavController, email: String) {
-    var otp by remember { mutableStateOf("") }
-    var password by remember { mutableStateOf("") }
-    var rePassword by remember { mutableStateOf("") }
-    var showToast by remember { mutableStateOf<String?>(null) }
-    var showSuccess by remember { mutableStateOf(false) }
+    val focusManager      = LocalFocusManager.current
+    val passwordRequester = remember { FocusRequester() }
+    val repassRequester   = remember { FocusRequester() }
+
+    var otp          by remember { mutableStateOf("") }
+    var password     by remember { mutableStateOf("") }
+    var rePassword   by remember { mutableStateOf("") }
+    var showToast    by remember { mutableStateOf<String?>(null) }
+    var showSuccess  by remember { mutableStateOf(false) }
 
     Box(Modifier.fillMaxSize()) {
-        // 1) Header image
+        // Header image
         Image(
             painter = painterResource(R.drawable.login_background),
             contentDescription = null,
@@ -48,7 +61,7 @@ fun SignUpOtpScreen(navController: NavController, email: String) {
                 .height(300.dp)
         )
 
-        // 2) Overlay title
+        // Overlay title
         Text(
             text = "Sign Up",
             color = Color.White,
@@ -57,7 +70,7 @@ fun SignUpOtpScreen(navController: NavController, email: String) {
                 .offset(x = 20.dp, y = 195.dp)
         )
 
-        // 3) Cream card with rounded top corners
+        // Cream card
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -67,7 +80,7 @@ fun SignUpOtpScreen(navController: NavController, email: String) {
                 .padding(horizontal = 24.dp, vertical = 32.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Instruction text
+            // Instruction
             Text(
                 text = "We’ve sent a code to your email\n($email). Please enter it below to confirm your account.",
                 color = MaterialTheme.colorScheme.onSurface,
@@ -78,16 +91,24 @@ fun SignUpOtpScreen(navController: NavController, email: String) {
                     .padding(bottom = 28.dp)
             )
 
-            // OTP field
+            // 1) OTP field: Next -> password
             PillTextField(
-                value = otp,
-                onValueChange = { otp = it },
-                modifier = Modifier.fillMaxWidth(),
-                placeholder = "Enter OTP",
-                isPassword = false
+                value           = otp,
+                onValueChange   = { otp = it },
+                modifier        = Modifier.fillMaxWidth(),
+                placeholder     = "Enter OTP",
+                isPassword      = false,
+                keyboardOptions = KeyboardOptions(
+                    keyboardType = KeyboardType.Number,
+                    imeAction    = ImeAction.Next
+                ),
+                keyboardActions = KeyboardActions(
+                    onNext = { passwordRequester.requestFocus() }
+                )
             )
             Spacer(Modifier.height(40.dp))
 
+            // Password label
             Text(
                 text = "Password",
                 color = BlackLight,
@@ -97,16 +118,26 @@ fun SignUpOtpScreen(navController: NavController, email: String) {
                     .padding(bottom = 12.dp)
             )
 
-            // Password field
+            // 2) Password field: Next -> re-enter
             PillTextField(
-                value = password,
-                onValueChange = { password = it },
-                modifier = Modifier.fillMaxWidth(),
-                placeholder = "Enter password",
-                isPassword = true
+                value           = password,
+                onValueChange   = { password = it },
+                modifier        = Modifier
+                    .fillMaxWidth()
+                    .focusRequester(passwordRequester),
+                placeholder     = "Enter password",
+                isPassword      = true,
+                keyboardOptions = KeyboardOptions(
+                    keyboardType = KeyboardType.Password,
+                    imeAction    = ImeAction.Next
+                ),
+                keyboardActions = KeyboardActions(
+                    onNext = { repassRequester.requestFocus() }
+                )
             )
             Spacer(Modifier.height(20.dp))
 
+            // Re-enter label
             Text(
                 text = "Re-Enter Password",
                 color = BlackLight,
@@ -116,29 +147,54 @@ fun SignUpOtpScreen(navController: NavController, email: String) {
                     .padding(bottom = 12.dp)
             )
 
-            // Re‑enter password field
+            // 3) Re-enter field: Done -> submit
             PillTextField(
-                value = rePassword,
-                onValueChange = { rePassword = it },
-                modifier = Modifier.fillMaxWidth(),
-                placeholder = "Re‑enter password",
-                isPassword = true
+                value           = rePassword,
+                onValueChange   = { rePassword = it },
+                modifier        = Modifier
+                    .fillMaxWidth()
+                    .focusRequester(repassRequester),
+                placeholder     = "Re‑enter password",
+                isPassword      = true,
+                keyboardOptions = KeyboardOptions(
+                    keyboardType = KeyboardType.Password,
+                    imeAction    = ImeAction.Done
+                ),
+                keyboardActions = KeyboardActions(
+                    onDone = {
+                        focusManager.clearFocus()
+                        // Run create account logic
+                        showToast = when {
+                            otp.isBlank() || password.isBlank() || rePassword.isBlank() ->
+                                "Please fill all fields"
+                            otp != "1234" ->
+                                "Invalid OTP"
+                            password != rePassword ->
+                                "Passwords do not match"
+                            else -> {
+                                showSuccess = true
+                                null
+                            }
+                        }
+                    }
+                )
             )
             Spacer(Modifier.height(45.dp))
 
-            // Create Account button (dark‑teal)
+            // Create Account button
             PillButton(
                 text = "CREATE ACCOUNT",
                 onClick = {
-                    when {
+                    showToast = when {
                         otp.isBlank() || password.isBlank() || rePassword.isBlank() ->
-                            showToast = "Please fill all fields"
+                            "Please fill all fields"
                         otp != "1234" ->
-                            showToast = "Invalid OTP"
+                            "Invalid OTP"
                         password != rePassword ->
-                            showToast = "Passwords do not match"
+                            "Passwords do not match"
                         else -> {
-                            showSuccess = true        // <-- Show the pop‑up instead of navController.navigate()
+                            showSuccess = true
+                            null
                         }
                     }
                 },
@@ -148,7 +204,7 @@ fun SignUpOtpScreen(navController: NavController, email: String) {
             )
             Spacer(Modifier.height(20.dp))
 
-            // Cancel button (outlined)
+            // Cancel
             OutlinedButton(
                 onClick = { navController.popBackStack() },
                 modifier = Modifier
@@ -156,7 +212,7 @@ fun SignUpOtpScreen(navController: NavController, email: String) {
                     .height(48.dp),
                 shape = RoundedCornerShape(50),
                 colors = ButtonDefaults.outlinedButtonColors(
-                    contentColor = TealDark,
+                    contentColor   = TealDark,
                     containerColor = CreamBackground
                 ),
                 border = ButtonDefaults.outlinedButtonBorder.copy(width = 1.dp)
@@ -165,20 +221,21 @@ fun SignUpOtpScreen(navController: NavController, email: String) {
             }
         }
 
-        // Toast messages
+        // Toast
         showToast?.let {
             ShowToast(it)
             showToast = null
         }
 
+        // Success dialog
         if (showSuccess) {
             SuccessDialog(
-                message = "Account created successfully!\nLet’s finish your profile.",
+                message       = "Account created successfully!\nLet’s finish your profile.",
                 onButtonClick = {
                     showSuccess = false
                     navController.navigate("profilecreation")
                 },
-                onDismiss = {
+                onDismiss     = {
                     showSuccess = false
                 }
             )

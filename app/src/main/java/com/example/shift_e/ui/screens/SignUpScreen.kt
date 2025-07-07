@@ -5,6 +5,8 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
@@ -17,6 +19,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
@@ -79,7 +83,21 @@ fun SignUpScreen(navController: NavController) {
                 onValueChange = { email = it },
                 modifier = Modifier.fillMaxWidth(),
                 placeholder = "Enter your email",
-                isPassword = false
+                isPassword = false,
+                keyboardOptions = KeyboardOptions(
+                    keyboardType = KeyboardType.Text,
+                    imeAction    = ImeAction.Done
+                ),
+                keyboardActions = KeyboardActions(
+                    onDone = {
+                        showToast = if (!android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
+                            "Please enter a valid email"
+                        } else {
+                            navController.navigate("signup_otp?email=${email}")
+                            null
+                        }
+                    }
+                )
             )
             Spacer(Modifier.height(50.dp))
 
