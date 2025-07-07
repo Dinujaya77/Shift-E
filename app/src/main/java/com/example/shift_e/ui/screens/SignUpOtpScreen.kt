@@ -2,16 +2,20 @@ package com.example.shift_e.ui.screens
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -49,6 +53,7 @@ fun SignUpOtpScreen(navController: NavController, email: String) {
     var rePassword   by remember { mutableStateOf("") }
     var showToast    by remember { mutableStateOf<String?>(null) }
     var showSuccess  by remember { mutableStateOf(false) }
+    var passwordVisible by remember { mutableStateOf(false) }
 
     Box(Modifier.fillMaxSize()) {
         // Header image
@@ -126,14 +131,27 @@ fun SignUpOtpScreen(navController: NavController, email: String) {
                     .fillMaxWidth()
                     .focusRequester(passwordRequester),
                 placeholder     = "Enter password",
-                isPassword      = true,
+                isPassword      = !passwordVisible,
                 keyboardOptions = KeyboardOptions(
                     keyboardType = KeyboardType.Password,
                     imeAction    = ImeAction.Next
                 ),
                 keyboardActions = KeyboardActions(
                     onNext = { repassRequester.requestFocus() }
-                )
+                ),
+                trailingIcon = {
+                    IconButton(onClick = { passwordVisible = !passwordVisible }) {
+                        Icon(
+                            imageVector = if (passwordVisible)
+                                Icons.Default.Visibility
+                            else
+                                Icons.Default.VisibilityOff,
+                            contentDescription = if (passwordVisible)
+                                "Hide password" else "Show password",
+                            tint = MaterialTheme.colorScheme.primary
+                        )
+                    }
+                }
             )
             Spacer(Modifier.height(20.dp))
 
@@ -155,7 +173,7 @@ fun SignUpOtpScreen(navController: NavController, email: String) {
                     .fillMaxWidth()
                     .focusRequester(repassRequester),
                 placeholder     = "Re‑enter password",
-                isPassword      = true,
+                isPassword      = !passwordVisible,
                 keyboardOptions = KeyboardOptions(
                     keyboardType = KeyboardType.Password,
                     imeAction    = ImeAction.Done
@@ -177,7 +195,20 @@ fun SignUpOtpScreen(navController: NavController, email: String) {
                             }
                         }
                     }
-                )
+                ),
+                trailingIcon = {
+                    IconButton(onClick = { passwordVisible = !passwordVisible }) {
+                        Icon(
+                            imageVector = if (passwordVisible)
+                                Icons.Default.Visibility
+                            else
+                                Icons.Default.VisibilityOff,
+                            contentDescription = if (passwordVisible)
+                                "Hide password" else "Show password",
+                            tint = MaterialTheme.colorScheme.primary
+                        )
+                    }
+                }
             )
             Spacer(Modifier.height(45.dp))
 

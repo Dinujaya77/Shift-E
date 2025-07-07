@@ -1,11 +1,16 @@
 package com.example.shift_e.ui.screens
 
+import android.app.DatePickerDialog
+import android.widget.DatePicker
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.CalendarToday
@@ -16,34 +21,65 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.shift_e.R
 import com.example.shift_e.ui.components.PillButton
 import com.example.shift_e.ui.components.PillTextField
+import com.example.shift_e.ui.components.ShowToast
 import com.example.shift_e.ui.theme.BlackLight
 import com.example.shift_e.ui.theme.CreamBackground
 import com.example.shift_e.ui.theme.TealDark
+import java.util.*
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProfileCreationScreen(navController: NavController) {
-    var firstName by remember { mutableStateOf("") }
-    var lastName  by remember { mutableStateOf("") }
-    var birthday  by remember { mutableStateOf("") }
-    var mobile    by remember { mutableStateOf("") }
-    var gender    by remember { mutableStateOf("") }
-    var expanded  by remember { mutableStateOf(false) }
+    val context       = LocalContext.current
+    val focusManager  = LocalFocusManager.current
+    val lastReq       = remember { FocusRequester() }
+    val birthdayReq   = remember { FocusRequester() }
+    val genderReq     = remember { FocusRequester() }
+    val mobileReq     = remember { FocusRequester() }
+
+    var firstName  by remember { mutableStateOf("") }
+    var lastName   by remember { mutableStateOf("") }
+    var birthday   by remember { mutableStateOf("") }
+    var mobile     by remember { mutableStateOf("") }
+    var gender     by remember { mutableStateOf("") }
+    var expanded   by remember { mutableStateOf(false) }
+    var showToast  by remember { mutableStateOf<String?>(null) }
 
     val genderOptions = listOf("Male", "Female", "Other")
 
+    // Helper to open DatePicker
+    fun openDatePicker() {
+        val now = Calendar.getInstance()
+        DatePickerDialog(
+            context,
+            { _: DatePicker, y, m, d ->
+                birthday = "%04d-%02d-%02d".format(y, m + 1, d)
+                // after picking move to gender
+                genderReq.requestFocus()
+            },
+            now.get(Calendar.YEAR),
+            now.get(Calendar.MONTH),
+            now.get(Calendar.DAY_OF_MONTH)
+        ).show()
+    }
+
     Box(Modifier.fillMaxSize()) {
-        // 1) Header image (same height as login)
+        // Header image
         Image(
             painter = painterResource(R.drawable.login_background),
             contentDescription = null,
@@ -53,30 +89,25 @@ fun ProfileCreationScreen(navController: NavController) {
                 .height(300.dp)
         )
 
-        // 2) Overlayed title (same offset and style as login)
+        // Title overlay
         Text(
-            text = "Complete Profile",
+            "Complete Profile",
             color = Color.White,
             style = MaterialTheme.typography.displaySmall.copy(fontWeight = FontWeight.Bold),
-            modifier = Modifier
-                .offset(x = 20.dp, y = 160.dp)
+            modifier = Modifier.offset(x = 20.dp, y = 160.dp)
         )
 
-        // 3) Cream card with rounded top corners (32dp), offset same as login
+        // Scrollable form
         Column(
-            modifier = Modifier
+            Modifier
                 .fillMaxWidth()
                 .offset(y = 210.dp)
                 .clip(RoundedCornerShape(topStart = 32.dp, topEnd = 32.dp))
                 .background(CreamBackground)
-                .padding(horizontal = 24.dp, vertical = 32.dp),
+                .verticalScroll(rememberScrollState())
+                .padding(24.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // 4) Avatar circle
-
-
-            // 5) Form fields, each full‑width with leading icons
-
             Text(
                 text = "First Name",
                 color = BlackLight,
@@ -85,19 +116,17 @@ fun ProfileCreationScreen(navController: NavController) {
                     .fillMaxWidth()
                     .padding(bottom = 10.dp)
             )
-
+            // First Name
             PillTextField(
                 value = firstName,
                 onValueChange = { firstName = it },
                 placeholder = "First name",
-                isPassword = false,
-                leadingIcon = {
-                    Icon(Icons.Default.Person, contentDescription = null, tint = TealDark)
-                },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(bottom = 20.dp)
+                leadingIcon = { Icon(Icons.Default.Person, null, tint = TealDark) },
+                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
+                keyboardActions = KeyboardActions(onNext = { lastReq.requestFocus() }),
+                modifier = Modifier.fillMaxWidth()
             )
+            Spacer(Modifier.height(16.dp))
 
             Text(
                 text = "Last Name",
@@ -108,18 +137,19 @@ fun ProfileCreationScreen(navController: NavController) {
                     .padding(bottom = 10.dp)
             )
 
+            // Last Name
             PillTextField(
                 value = lastName,
                 onValueChange = { lastName = it },
                 placeholder = "Last name",
-                isPassword = false,
-                leadingIcon = {
-                    Icon(Icons.Default.Person, contentDescription = null, tint = TealDark)
-                },
+                leadingIcon = { Icon(Icons.Default.Person, null, tint = TealDark) },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(bottom = 20.dp)
+                    .focusRequester(lastReq),
+                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
+                keyboardActions = KeyboardActions(onNext = { openDatePicker() })
             )
+            Spacer(Modifier.height(16.dp))
 
             Text(
                 text = "BirthDay",
@@ -130,18 +160,21 @@ fun ProfileCreationScreen(navController: NavController) {
                     .padding(bottom = 10.dp)
             )
 
+            // Birthday (clickable)
             PillTextField(
                 value = birthday,
-                onValueChange = { birthday = it },
+                onValueChange = {},
                 placeholder = "Birthday (YYYY-MM-DD)",
-                isPassword = false,
-                leadingIcon = {
-                    Icon(Icons.Default.CalendarToday, contentDescription = null, tint = TealDark)
-                },
+                leadingIcon = { Icon(Icons.Default.CalendarToday, null, tint = TealDark) },
+                enabled = false,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(bottom = 20.dp)
+                    .clickable { openDatePicker() }
+                    .focusRequester(birthdayReq),
+                keyboardOptions = KeyboardOptions.Default,
+                keyboardActions = KeyboardActions.Default
             )
+            Spacer(Modifier.height(16.dp))
 
             Text(
                 text = "Gender",
@@ -153,33 +186,26 @@ fun ProfileCreationScreen(navController: NavController) {
             )
 
             // Gender dropdown
-            ExposedDropdownMenuBox(
-                expanded = expanded,
-                onExpandedChange = { expanded = !expanded }
-            ) {
+            Box(Modifier.fillMaxWidth()) {
                 PillTextField(
                     value = gender,
-                    onValueChange = {  },
-                    placeholder = if (gender.isEmpty()) "Select gender" else gender,
-                    isPassword = false,
-                    enabled = false,
+                    onValueChange = {},
+                    placeholder = "Select gender",
                     trailingIcon = {
-                        Icon(
-                            Icons.Default.ArrowDropDown,
-                            contentDescription = null,
-                            tint = TealDark,
-                            modifier = Modifier.clickable { expanded = true }
-                        )
+                        Icon(Icons.Default.ArrowDropDown, null, tint = TealDark)
                     },
+                    enabled = false,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(bottom = 20.dp)
-                        .menuAnchor()
+                        .clickable { expanded = true }
+                        .focusRequester(genderReq),
+                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
+                    keyboardActions = KeyboardActions(onNext = { mobileReq.requestFocus() })
                 )
-                ExposedDropdownMenu(
+                DropdownMenu(
                     expanded = expanded,
                     onDismissRequest = { expanded = false },
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(fraction = 0.7f)
                 ) {
                     genderOptions.forEach { option ->
                         DropdownMenuItem(
@@ -187,11 +213,13 @@ fun ProfileCreationScreen(navController: NavController) {
                             onClick = {
                                 gender = option
                                 expanded = false
+                                mobileReq.requestFocus()
                             }
                         )
                     }
                 }
             }
+            Spacer(Modifier.height(16.dp))
 
             Text(
                 text = "Mobile Number",
@@ -202,32 +230,58 @@ fun ProfileCreationScreen(navController: NavController) {
                     .padding(bottom = 10.dp)
             )
 
+            // Mobile
             PillTextField(
                 value = mobile,
                 onValueChange = { mobile = it },
-                placeholder = "Mobile number",
-                isPassword = false,
-                leadingIcon = {
-                    Icon(Icons.Default.Phone, contentDescription = null, tint = TealDark)
-                },
+                placeholder = "07XXXXXXXX",
+                leadingIcon = { Icon(Icons.Default.Phone, null, tint = TealDark) },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(vertical = 8.dp)
+                    .focusRequester(mobileReq),
+                keyboardOptions = KeyboardOptions(
+                    keyboardType = KeyboardType.Phone,
+                    imeAction = ImeAction.Done
+                ),
+                keyboardActions = KeyboardActions(onDone = {
+                    focusManager.clearFocus()
+                    showToast = when {
+                        !mobile.matches(Regex("^07\\d{8}\$")) ->
+                            "Invalid SL mobile"
+                        else -> {
+                            navController.navigate("dashboard?username=$firstName") {
+                                popUpTo("login") { inclusive = true }
+                            }
+                            null
+                        }
+                    }
+                })
             )
-
             Spacer(Modifier.height(24.dp))
 
-            // 6) NEXT button
-            PillButton(
-                text = "NEXT",
-                onClick = {
-                    // validation or navigate to dashboard
-                    navController.navigate("dashboard")
-                },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(48.dp)
-            )
+            // Next
+            PillButton("NEXT", {
+                focusManager.clearFocus()
+                showToast = when {
+                    firstName.isBlank() || lastName.isBlank() ||
+                            birthday.isBlank() || gender.isBlank() ||
+                            !mobile.matches(Regex("^07\\d{8}\$")) ->
+                        "Fill all fields correctly"
+                    else -> {
+                        navController.navigate("dashboard?username=$firstName") {
+                            popUpTo("login") { inclusive = true }
+                        }
+                        null
+                    }
+                }
+            }, modifier = Modifier.fillMaxWidth().height(48.dp))
+
+            showToast?.let {
+                ShowToast(it)
+                showToast = null
+            }
+
+            Spacer(Modifier.height(40.dp))
         }
     }
 }

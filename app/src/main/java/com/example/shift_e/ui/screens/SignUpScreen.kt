@@ -85,7 +85,7 @@ fun SignUpScreen(navController: NavController) {
                 placeholder = "Enter your email",
                 isPassword = false,
                 keyboardOptions = KeyboardOptions(
-                    keyboardType = KeyboardType.Text,
+                    keyboardType = KeyboardType.Email,
                     imeAction    = ImeAction.Done
                 ),
                 keyboardActions = KeyboardActions(
