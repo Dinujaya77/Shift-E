@@ -5,15 +5,22 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
@@ -30,6 +37,8 @@ fun LoginScreen(navController: NavController) {
     var username by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var showToast by remember { mutableStateOf<String?>(null) }
+    val passwordRequester= remember { FocusRequester() }
+    val focusManager     = LocalFocusManager.current
 
     Box(Modifier.fillMaxSize()) {
         // 1) Header image
@@ -75,11 +84,18 @@ fun LoginScreen(navController: NavController) {
 
             // 4a) Username field
             PillTextField(
-                value = username,
-                onValueChange = { username = it },
-                modifier = Modifier.fillMaxWidth(),
-                placeholder = "Enter your username",
-                isPassword = false
+                value           = username,
+                onValueChange   = { username = it },
+                modifier        = Modifier.fillMaxWidth(),
+                placeholder     = "Enter your username",
+                isPassword      = false,
+                keyboardOptions = KeyboardOptions(
+                    keyboardType = KeyboardType.Text,
+                    imeAction    = ImeAction.Next
+                ),
+                keyboardActions = KeyboardActions(
+                    onNext = { passwordRequester.requestFocus() }
+                )
             )
             Spacer(Modifier.height(16.dp))
 
@@ -94,11 +110,33 @@ fun LoginScreen(navController: NavController) {
 
             // 4b) Password field
             PillTextField(
-                value = password,
-                onValueChange = { password = it },
-                modifier = Modifier.fillMaxWidth(),
-                placeholder = "Enter your password",
-                isPassword = true
+                value           = password,
+                onValueChange   = { password = it },
+                modifier        = Modifier
+                    .fillMaxWidth()
+                    .focusRequester(passwordRequester),
+                placeholder     = "Enter your password",
+                isPassword      = true,
+                keyboardOptions = KeyboardOptions(
+                    keyboardType = KeyboardType.Password,
+                    imeAction    = ImeAction.Done
+                ),
+                keyboardActions = KeyboardActions(
+                    onDone = {
+                        focusManager.clearFocus()
+                        // trigger login
+                        showToast = when {
+                            username.isBlank() || password.isBlank() -> "Please enter username and password"
+                            username != "user" || password != "password123" -> "Invalid credentials"
+                            else -> {
+                                navController.navigate("dashboard?username=$username") {
+                                    popUpTo("login") { inclusive = true }
+                                }
+                                null
+                            }
+                        }
+                    }
+                )
             )
             Spacer(Modifier.height(38.dp))
 
