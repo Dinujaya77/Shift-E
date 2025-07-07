@@ -176,7 +176,7 @@ fun SignUpOtpScreen(navController: NavController, email: String) {
                 message = "Account created successfully!\nLet’s finish your profile.",
                 onButtonClick = {
                     showSuccess = false
-                    navController.navigate("profile")
+                    navController.navigate("profilecreation")
                 },
                 onDismiss = {
                     showSuccess = false
