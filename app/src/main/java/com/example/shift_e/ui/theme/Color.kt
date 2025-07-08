@@ -20,3 +20,5 @@ val GrayDark        = Color(0xFF616161)
 
 val BlackLight        = Color(0xFF1E1D1D)
 val ShadedWhite = Color(0xFFFFFBFB)
+val ShadowBlack = Color(0x80000000)
+val Charcoal  = Color(0xFF333333)

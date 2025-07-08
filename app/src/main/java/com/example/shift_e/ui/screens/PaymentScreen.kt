@@ -218,7 +218,7 @@ fun PaymentScreen(navController: NavController) {
                             contentAlignment = Alignment.BottomEnd
                         ) {
                             Button(
-                                onClick = {  navController.navigate("driverscreen")},
+                                onClick = {  navController.navigate("qrscanner")},
                                 colors = ButtonDefaults.buttonColors(containerColor = TealDark)
                             ) {
                                 Text(text = "Scan")
