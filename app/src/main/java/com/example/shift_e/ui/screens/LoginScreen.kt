@@ -131,7 +131,7 @@ fun LoginScreen(navController: NavController) {
                         // trigger login
                         showToast = when {
                             username.isBlank() || password.isBlank() -> "Please enter username and password"
-                            username != "user" || password != "password123" -> "Invalid credentials"
+                            username != "shamail" || password != "password123" -> "Invalid credentials"
                             else -> {
                                 navController.navigate("dashboard?username=$username") {
                                     popUpTo("login") { inclusive = true }
