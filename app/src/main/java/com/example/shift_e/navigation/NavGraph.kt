@@ -11,6 +11,7 @@ import com.example.shift_e.ui.screens.LoginScreen
 import com.example.shift_e.ui.screens.PaymentScreen
 import com.example.shift_e.ui.screens.ProfileCreationScreen
 import com.example.shift_e.ui.screens.ProfileScreen
+import com.example.shift_e.ui.screens.QrScannerScreen
 import com.example.shift_e.ui.screens.SignUpOtpScreen
 import com.example.shift_e.ui.screens.SignUpScreen
 import com.example.shift_e.ui.screens.TripsScreen
@@ -52,6 +53,9 @@ fun AppNavGraph(navController: NavHostController, startDestination: String = "lo
         }
         composable("payment") {
             PaymentScreen(navController)
+        }
+        composable("qrscanner") {
+            QrScannerScreen(navController)
         }
         composable("driverscreen") {
             DriverScreen(navController)
