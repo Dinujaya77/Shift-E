@@ -8,7 +8,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -24,17 +24,48 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.shift_e.R
 import com.example.shift_e.ui.components.BottomNavBar
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProfileScreen(navController: NavController, username: String = "User") {
     val backgroundGradient = Brush.verticalGradient(
         colors = listOf(
-            Color(0xFF3C5E45), // Dark Olive Green
-            Color(0xFF6D9F7B), // Mid Green
-            Color(0xFF1B1B1B)  // Dark at the bottom
+            Color(0xFF3C5E45),
+            Color(0xFF6D9F7B),
+            Color(0xFF1B1B1B)
         )
     )
+
+    val auth = FirebaseAuth.getInstance()
+    val db = FirebaseFirestore.getInstance()
+    val uid = auth.currentUser?.uid
+
+    var email by remember { mutableStateOf("Loading...") }
+    var mobile by remember { mutableStateOf("Loading...") }
+    var firstName by remember { mutableStateOf(username) }
+
+    // User statistics
+    var totalRides by remember { mutableStateOf(0) }
+    var moneySaved by remember { mutableStateOf(0) }
+    var rating by remember { mutableStateOf(0.0) }
+
+    // Fetch user info and statistics from Firestore
+    LaunchedEffect(uid) {
+        uid?.let {
+            db.collection("users").document(it).get()
+                .addOnSuccessListener { doc ->
+                    doc.getString("firstName")?.let { firstName = it }
+                    doc.getString("email")?.let { email = it }
+                    doc.getString("mobile")?.let { mobile = it }
+
+                    doc.getLong("totalRides")?.let { totalRides = it.toInt() }
+                    doc.getLong("moneySaved")?.let { moneySaved = it.toInt() }
+                    doc.getDouble("rating")?.let { rating = it }
+                }
+        }
+    }
 
     Box(
         modifier = Modifier
@@ -75,13 +106,13 @@ fun ProfileScreen(navController: NavController, username: String = "User") {
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                Text(username, fontSize = 22.sp, fontWeight = FontWeight.Bold, color = Color.White)
-                Text("ajsmd@gmail.com", fontSize = 18.sp, color = Color.White)
-                Text("+94456213512", fontSize = 18.sp, color = Color.White)
+                Text(firstName, fontSize = 22.sp, fontWeight = FontWeight.Bold, color = Color.White)
+                Text(email, fontSize = 18.sp, color = Color.White)
+                Text(mobile, fontSize = 18.sp, color = Color.White)
 
                 Spacer(modifier = Modifier.height(28.dp))
 
-                // User Statistics
+                // Stats Card
                 Card(
                     shape = RoundedCornerShape(16.dp),
                     colors = CardDefaults.cardColors(containerColor = Color.Black),
@@ -94,10 +125,10 @@ fun ProfileScreen(navController: NavController, username: String = "User") {
                         verticalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
                         Text("User Statistics", color = Color.White, fontWeight = FontWeight.SemiBold, fontSize = 18.sp)
-                        Text("Total Rides completed: 20", color = Color.White, fontSize = 16.sp)
-                        Text("Money Saved: LKR1500", color = Color.White, fontSize = 16.sp)
+                        Text("Total Rides completed: $totalRides", color = Color.White, fontSize = 16.sp)
+                        Text("Money Saved: LKR$moneySaved", color = Color.White, fontSize = 16.sp)
                         Row(verticalAlignment = Alignment.CenterVertically) {
-                            Text("User Rating: 3.5", color = Color.White, fontSize = 16.sp)
+                            Text("User Rating: $rating", color = Color.White, fontSize = 16.sp)
                             Icon(
                                 imageVector = Icons.Default.Star,
                                 contentDescription = "Star",
@@ -108,7 +139,7 @@ fun ProfileScreen(navController: NavController, username: String = "User") {
                     }
                 }
 
-                // Wallet Section
+                // Wallet Card
                 Card(
                     shape = RoundedCornerShape(16.dp),
                     colors = CardDefaults.cardColors(containerColor = Color.Black),
@@ -126,14 +157,12 @@ fun ProfileScreen(navController: NavController, username: String = "User") {
                             modifier = Modifier.padding(bottom = 20.dp)
                         )
 
-                        // Overlapping Card Display
                         Box(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .height(140.dp),
                             contentAlignment = Alignment.Center
                         ) {
-                            // Back Card (Purple)
                             WalletCardImage(
                                 resId = R.drawable.card_1,
                                 modifier = Modifier
@@ -141,7 +170,6 @@ fun ProfileScreen(navController: NavController, username: String = "User") {
                                     .size(width = 180.dp, height = 110.dp)
                             )
 
-                            // Front Card (Black - selected)
                             WalletCardImage(
                                 resId = R.drawable.card_2,
                                 modifier = Modifier

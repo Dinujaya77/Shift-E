@@ -1,70 +1,73 @@
 package com.example.shift_e.ui.screens
 
-import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
+import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.*
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.SwapVert
+import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.PathEffect
-import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.graphics.*
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
+import androidx.compose.ui.unit.*
 import androidx.navigation.NavController
 import com.example.shift_e.R
 import com.example.shift_e.ui.components.BottomNavBar
 import com.example.shift_e.ui.components.BoxContainer
 import com.example.shift_e.ui.components.PaymentMethodDialog
 import com.example.shift_e.ui.enums.PaymentOption
-import com.example.shift_e.ui.theme.ForestGreen
-import com.example.shift_e.ui.theme.GreenDark
-import com.example.shift_e.ui.theme.GreenLight
-import com.example.shift_e.ui.theme.GrayLight
-import com.example.shift_e.ui.theme.GreenExtraLight
-import com.example.shift_e.ui.theme.ShadedWhite
-import com.example.shift_e.ui.theme.TealDark
+import com.example.shift_e.ui.theme.*
+import com.google.firebase.firestore.FirebaseFirestore
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PaymentScreen(navController: NavController) {
-    val location1 = "NSBM Green University"
-    val location2 = "School Junction"
+    val db = FirebaseFirestore.getInstance()
+    val location1 = "nsbm"
+    val location2 = "school_junction"
     var origin by remember { mutableStateOf(location1) }
     var destination by remember { mutableStateOf(location2) }
-    val readyCount = 12
-    val chargingCount = 3
-    val onTheWayCount = 5
+
+    var ridesAvailable by remember { mutableStateOf(0) }
+    var charging by remember { mutableStateOf(0) }
+    var onTheWay by remember { mutableStateOf(0) }
+    var loading by remember { mutableStateOf(true) }
+
+    // Fetch availability data when origin changes
+    LaunchedEffect(origin) {
+        loading = true
+        db.collection("locations").document(origin).get()
+            .addOnSuccessListener { doc ->
+                ridesAvailable = doc.getLong("ridesAvailable")?.toInt() ?: 0
+                charging = doc.getLong("charging")?.toInt() ?: 0
+                onTheWay = doc.getLong("ontheway")?.toInt() ?: 0
+                loading = false
+            }
+            .addOnFailureListener {
+                loading = false
+            }
+    }
+
     var selectedOption by remember { mutableStateOf(PaymentOption.CARD) }
     var showDialog by remember { mutableStateOf(false) }
+
     val backgroundBrush = Brush.verticalGradient(
         colorStops = arrayOf(
-            0.0f  to ShadedWhite,
-            0.4f  to GreenExtraLight,
-            0.6f  to GreenLight,
-            1.0f  to GreenDark
+            0.0f to ShadedWhite,
+            0.4f to GreenExtraLight,
+            0.6f to GreenLight,
+            1.0f to GreenDark
         )
     )
 
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(brush = backgroundBrush)
-    ) {
+    Box(modifier = Modifier.fillMaxSize().background(brush = backgroundBrush)) {
         Scaffold(
             modifier = Modifier.fillMaxSize(),
             containerColor = Color.Transparent,
@@ -100,10 +103,8 @@ fun PaymentScreen(navController: NavController) {
                     .verticalScroll(rememberScrollState())
                     .padding(16.dp)
             ) {
-                BoxContainer(
-                    bgColor = GrayLight,
-                    height = 150.dp
-                ) {
+                // Location box
+                BoxContainer(bgColor = GrayLight, height = 150.dp) {
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier.fillMaxSize()
@@ -116,17 +117,9 @@ fun PaymentScreen(navController: NavController) {
                             horizontalAlignment = Alignment.CenterHorizontally,
                             verticalArrangement = Arrangement.Center
                         ) {
-                            Box(
-                                modifier = Modifier
-                                    .size(16.dp)
-                                    .background(TealDark, shape = MaterialTheme.shapes.small)
-                            )
+                            Box(modifier = Modifier.size(16.dp).background(TealDark, shape = MaterialTheme.shapes.small))
                             Spacer(modifier = Modifier.height(4.dp))
-                            Canvas(
-                                modifier = Modifier
-                                    .width(2.dp)
-                                    .height(60.dp)
-                            ) {
+                            Canvas(modifier = Modifier.width(2.dp).height(60.dp)) {
                                 drawLine(
                                     color = Color.Gray,
                                     start = Offset(x = size.width / 2, y = 0f),
@@ -136,37 +129,21 @@ fun PaymentScreen(navController: NavController) {
                                 )
                             }
                             Spacer(modifier = Modifier.height(4.dp))
-                            Box(
-                                modifier = Modifier
-                                    .size(16.dp)
-                                    .background(GreenDark, shape = RectangleShape)
-                            )
+                            Box(modifier = Modifier.size(16.dp).background(GreenDark, shape = RectangleShape))
                         }
+
                         Column(
                             modifier = Modifier.weight(1f),
                             horizontalAlignment = Alignment.CenterHorizontally,
                             verticalArrangement = Arrangement.Center
                         ) {
-                            Box(
-                                modifier = Modifier
-                                    .border(BorderStroke(1.dp, TealDark), shape = MaterialTheme.shapes.large)
-                                    .background(TealDark.copy(alpha = 0.1f), shape = MaterialTheme.shapes.large)
-                                    .padding(horizontal = 20.dp, vertical = 6.dp)
-                            ) {
-                                Text(text = origin, fontSize = 14.sp, color = TealDark)
-                            }
+                            TextBox(origin.replace('_', ' ').uppercase())
                             Spacer(Modifier.height(8.dp))
-                            Text(text = "To", fontSize = 15.sp, color = Color.Black)
+                            Text("To", fontSize = 15.sp, color = Color.Black)
                             Spacer(Modifier.height(8.dp))
-                            Box(
-                                modifier = Modifier
-                                    .border(BorderStroke(1.dp, TealDark), shape = MaterialTheme.shapes.large)
-                                    .background(TealDark.copy(alpha = 0.1f), shape = MaterialTheme.shapes.large)
-                                    .padding(horizontal = 12.dp, vertical = 4.dp)
-                            ) {
-                                Text(text = destination, fontSize = 14.sp, color = TealDark)
-                            }
+                            TextBox(destination.replace('_', ' ').uppercase())
                         }
+
                         IconButton(
                             onClick = {
                                 val tmp = origin
@@ -177,7 +154,8 @@ fun PaymentScreen(navController: NavController) {
                             Icon(
                                 imageVector = Icons.Filled.SwapVert,
                                 contentDescription = "Swap Locations",
-                                tint = Color.Gray, modifier = Modifier.size(size = 50.dp)
+                                tint = Color.Gray,
+                                modifier = Modifier.size(50.dp)
                             )
                         }
                     }
@@ -185,21 +163,12 @@ fun PaymentScreen(navController: NavController) {
 
                 Spacer(Modifier.height(16.dp))
 
-                BoxContainer(
-                    bgColor = ForestGreen,
-                    height = 170.dp
-                ) {
+                // QR Scan Section
+                BoxContainer(bgColor = ForestGreen, height = 170.dp) {
                     Column(modifier = Modifier.fillMaxSize()) {
-                        Text(
-                            text = "Scan Bike QR",
-                            fontSize = 16.sp,
-                            color = Color.White
-                        )
+                        Text("Scan Bike QR", fontSize = 16.sp, color = Color.White)
                         Spacer(Modifier.height(8.dp))
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
                             Spacer(Modifier.width(10.dp))
                             Image(
                                 painter = painterResource(R.drawable.ic_qr),
@@ -207,21 +176,11 @@ fun PaymentScreen(navController: NavController) {
                                 modifier = Modifier.size(72.dp)
                             )
                             Spacer(Modifier.width(25.dp))
-                            Text(
-                                text = "Located at the Stem of the bike handle",
-                                fontSize = 15.sp,
-                                color = Color.White.copy(alpha = 0.8f)
-                            )
+                            Text("Located at the Stem of the bike handle", fontSize = 15.sp, color = Color.White.copy(alpha = 0.8f))
                         }
-                        Box(
-                            modifier = Modifier.fillMaxWidth(),
-                            contentAlignment = Alignment.BottomEnd
-                        ) {
-                            Button(
-                                onClick = {  navController.navigate("qrscanner")},
-                                colors = ButtonDefaults.buttonColors(containerColor = TealDark)
-                            ) {
-                                Text(text = "Scan")
+                        Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.BottomEnd) {
+                            Button(onClick = { navController.navigate("qrscanner") }, colors = ButtonDefaults.buttonColors(containerColor = TealDark)) {
+                                Text("Scan")
                             }
                         }
                     }
@@ -229,6 +188,7 @@ fun PaymentScreen(navController: NavController) {
 
                 Spacer(Modifier.height(16.dp))
 
+                // Payment method section
                 BoxContainer(bgColor = TealDark, height = 190.dp) {
                     Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxSize()) {
                         Column(modifier = Modifier.weight(1f)) {
@@ -246,20 +206,19 @@ fun PaymentScreen(navController: NavController) {
                                 fontSize = 16.sp, color = Color.White
                             )
                             Spacer(Modifier.height(20.dp))
-                            Button(
-                                onClick = { showDialog = true },
-                                colors = ButtonDefaults.buttonColors(containerColor = GreenDark)
-                            ) {
+                            Button(onClick = { showDialog = true }, colors = ButtonDefaults.buttonColors(containerColor = GreenDark)) {
                                 Icon(Icons.Default.Edit, contentDescription = "Edit", tint = Color.White)
                                 Spacer(Modifier.width(4.dp))
                                 Text("Edit", color = Color.White)
                             }
                         }
+
                         val iconRes = when (selectedOption) {
                             PaymentOption.CARD   -> R.drawable.ic_credit_card
                             PaymentOption.CASH   -> R.drawable.ic_cash
                             PaymentOption.PAYPAL -> R.drawable.ic_paypal
                         }
+
                         Image(
                             painter = painterResource(iconRes),
                             contentDescription = null,
@@ -267,45 +226,26 @@ fun PaymentScreen(navController: NavController) {
                         )
                     }
                 }
+
                 Spacer(Modifier.height(16.dp))
 
-                BoxContainer(
-                    bgColor = TealDark,
-                    height = 160.dp
-                ) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxSize(),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Column(
-                            modifier = Modifier.weight(1f)
-                        ) {
-                            Text(text = "Current Availability", fontSize = 16.sp, color = Color.White)
-                            Divider(
-                                color = Color.White.copy(alpha = 0.5f),
-                                thickness = 1.dp,
-                                modifier = Modifier
-                                    .width(150.dp)
-                                    .padding(vertical = 4.dp)
-                            )
+                // Current availability section
+                BoxContainer(bgColor = TealDark, height = 160.dp) {
+                    Row(modifier = Modifier.fillMaxSize(), verticalAlignment = Alignment.CenterVertically) {
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text("Current Availability", fontSize = 16.sp, color = Color.White)
+                            Divider(color = Color.White.copy(alpha = 0.5f), thickness = 1.dp, modifier = Modifier.width(150.dp).padding(vertical = 4.dp))
                             Spacer(Modifier.height(4.dp))
-                            Text(
-                                text = "Ready to go: $readyCount",
-                                fontSize = 15.sp,
-                                color = Color.Green
-                            )
-                            Text(
-                                text = "Charging: $chargingCount",
-                                fontSize = 15.sp,
-                                color = Color.Red
-                            )
-                            Text(
-                                text = "On the way: $onTheWayCount",
-                                fontSize = 15.sp,
-                                color = Color.White
-                            )
+
+                            if (loading) {
+                                Text("Loading...", color = Color.LightGray)
+                            } else {
+                                Text("Ready to go: $ridesAvailable", fontSize = 15.sp, color = Color.Green)
+                                Text("Charging: $charging", fontSize = 15.sp, color = Color.Red)
+                                Text("On the way: $onTheWay", fontSize = 15.sp, color = Color.White)
+                            }
                         }
+
                         Column(
                             modifier = Modifier.weight(1f),
                             horizontalAlignment = Alignment.End,
@@ -324,14 +264,22 @@ fun PaymentScreen(navController: NavController) {
             if (showDialog) {
                 PaymentMethodDialog(
                     selectedOption = selectedOption,
-                    onOptionSelected = {
-                        selectedOption = it
-                    },
-                    onDismiss = {
-                        showDialog = false
-                    }
+                    onOptionSelected = { selectedOption = it },
+                    onDismiss = { showDialog = false }
                 )
             }
         }
+    }
+}
+
+@Composable
+private fun TextBox(text: String) {
+    Box(
+        modifier = Modifier
+            .border(BorderStroke(1.dp, TealDark), shape = MaterialTheme.shapes.large)
+            .background(TealDark.copy(alpha = 0.1f), shape = MaterialTheme.shapes.large)
+            .padding(horizontal = 20.dp, vertical = 6.dp)
+    ) {
+        Text(text = text, fontSize = 14.sp, color = TealDark)
     }
 }

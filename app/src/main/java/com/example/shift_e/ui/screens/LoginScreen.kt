@@ -34,37 +34,53 @@ import com.example.shift_e.ui.components.ShowToast
 import com.example.shift_e.ui.theme.BlackLight
 import com.example.shift_e.ui.theme.CreamBackground
 import com.example.shift_e.ui.theme.TealDark
+import com.google.firebase.auth.FirebaseAuth
 
 @Composable
 fun LoginScreen(navController: NavController) {
-    var username by remember { mutableStateOf("") }
+    var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var showToast by remember { mutableStateOf<String?>(null) }
-    val passwordRequester= remember { FocusRequester() }
-    val focusManager     = LocalFocusManager.current
+    val passwordRequester = remember { FocusRequester() }
+    val focusManager = LocalFocusManager.current
     var passwordVisible by remember { mutableStateOf(false) }
+    val auth = FirebaseAuth.getInstance()
+
+    fun loginUser() {
+        val trimmedEmail = email.trim().lowercase()
+        if (trimmedEmail.isBlank() || password.isBlank()) {
+            showToast = "Please enter email and password"
+            return
+        }
+
+        auth.signInWithEmailAndPassword(trimmedEmail, password)
+            .addOnCompleteListener { task ->
+                if (task.isSuccessful) {
+                    val displayName = trimmedEmail.substringBefore("@")
+                    navController.navigate("dashboard?username=$displayName") {
+                        popUpTo("login") { inclusive = true }
+                    }
+                } else {
+                    showToast = task.exception?.message ?: "Login failed"
+                }
+            }
+    }
 
     Box(Modifier.fillMaxSize()) {
-        // 1) Header image
         Image(
             painter = painterResource(R.drawable.login_background),
             contentDescription = null,
             contentScale = ContentScale.Crop,
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(300.dp)
+            modifier = Modifier.fillMaxWidth().height(300.dp)
         )
 
         Text(
-                text = "Sign In",
-                color = Color.White,
-                style = MaterialTheme.typography.displayMedium.copy(fontWeight = FontWeight.Bold),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .offset(y=195.dp, x = 20.dp)
-            )
+            text = "Sign In",
+            color = Color.White,
+            style = MaterialTheme.typography.displayMedium.copy(fontWeight = FontWeight.Bold),
+            modifier = Modifier.offset(y = 195.dp, x = 20.dp)
+        )
 
-        // 2) Cream card with rounded top corners
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -76,80 +92,49 @@ fun LoginScreen(navController: NavController) {
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
 
-
             Text(
-                text = "Username",
+                "Email",
                 color = BlackLight,
                 style = MaterialTheme.typography.titleMedium,
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(bottom = 12.dp)
+                     .fillMaxWidth()
+                    .padding(bottom = 12.dp, start = 5.dp)
             )
-
-            // 4a) Username field
             PillTextField(
-                value           = username,
-                onValueChange   = { username = it },
-                modifier        = Modifier.fillMaxWidth(),
-                placeholder     = "Enter your username",
-                isPassword      = false,
-                keyboardOptions = KeyboardOptions(
-                    keyboardType = KeyboardType.Text,
-                    imeAction    = ImeAction.Next
-                ),
-                keyboardActions = KeyboardActions(
-                    onNext = { passwordRequester.requestFocus() }
-                )
+                value = email,
+                onValueChange = { email = it },
+                modifier = Modifier.fillMaxWidth(),
+                placeholder = "Enter your email",
+                isPassword = false,
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email, imeAction = ImeAction.Next),
+                keyboardActions = KeyboardActions(onNext = { passwordRequester.requestFocus() })
             )
             Spacer(Modifier.height(16.dp))
 
             Text(
-                text = "Password",
+                "Password",
                 color = BlackLight,
                 style = MaterialTheme.typography.titleMedium,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(bottom = 12.dp)
+                    .padding(bottom = 12.dp, start = 5.dp)
             )
-
-            // 4b) Password field
             PillTextField(
-                value           = password,
-                onValueChange   = { password = it },
-                modifier        = Modifier
-                    .fillMaxWidth()
-                    .focusRequester(passwordRequester),
-                placeholder     = "Enter your password",
-                isPassword      = !passwordVisible,
-                keyboardOptions = KeyboardOptions(
-                    keyboardType = KeyboardType.Password,
-                    imeAction    = ImeAction.Done
-                ),
-                keyboardActions = KeyboardActions(
-                    onDone = {
-                        focusManager.clearFocus()
-                        // trigger login
-                        showToast = when {
-                            username.isBlank() || password.isBlank() -> "Please enter username and password"
-                            username != "shamail" || password != "password123" -> "Invalid credentials"
-                            else -> {
-                                navController.navigate("dashboard?username=$username") {
-                                    popUpTo("login") { inclusive = true }
-                                }
-                                null
-                            }
-                        }
-                    }
-                ),
+                value = password,
+                onValueChange = { password = it },
+                modifier = Modifier.fillMaxWidth().focusRequester(passwordRequester),
+                placeholder = "Enter your password",
+                isPassword = !passwordVisible,
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password, imeAction = ImeAction.Done),
+                keyboardActions = KeyboardActions(onDone = {
+                    focusManager.clearFocus()
+                    loginUser()
+                }),
                 trailingIcon = {
                     IconButton(onClick = { passwordVisible = !passwordVisible }) {
                         Icon(
-                            imageVector = if (passwordVisible)
-                                Icons.Default.Visibility
-                            else
-                                Icons.Default.VisibilityOff,
-                            contentDescription = if (passwordVisible)
-                                "Hide password" else "Show password",
+                            imageVector = if (passwordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff,
+                            contentDescription = if (passwordVisible) "Hide password" else "Show password",
                             tint = MaterialTheme.colorScheme.primary
                         )
                     }
@@ -157,35 +142,19 @@ fun LoginScreen(navController: NavController) {
             )
             Spacer(Modifier.height(38.dp))
 
-            // 5) LOGIN button
             PillButton(
                 text = "LOGIN",
                 onClick = {
-                    when {
-                        username.isBlank() || password.isBlank() ->
-                            showToast = "Please enter username and password"
-                        username != "user" || password != "password123" ->
-                            showToast = "Invalid credentials"
-                        else -> {
-                            // pass username through the route
-                            navController.navigate("dashboard?username=$username") {
-                                // clear backstack so “Back” exits the app
-                                popUpTo("login") { inclusive = true }
-                            }
-                        }
-                    }
+                    focusManager.clearFocus()
+                    loginUser()
                 },
                 modifier = Modifier.fillMaxWidth().height(48.dp)
             )
-
             Spacer(Modifier.height(20.dp))
 
-            // 6) Google button
             OutlinedButton(
                 onClick = { showToast = "Feature under implementation" },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(48.dp),
+                modifier = Modifier.fillMaxWidth().height(48.dp),
                 shape = RoundedCornerShape(50),
                 colors = ButtonDefaults.outlinedButtonColors(
                     contentColor = Color.Gray,
@@ -203,7 +172,6 @@ fun LoginScreen(navController: NavController) {
             }
             Spacer(Modifier.height(20.dp))
 
-            // 7) Forgot password
             Text(
                 "Forgot password?",
                 color = TealDark,
@@ -214,7 +182,6 @@ fun LoginScreen(navController: NavController) {
             )
             Spacer(Modifier.height(100.dp))
 
-            // 8) Footer
             Row(horizontalArrangement = Arrangement.Center) {
                 Text("Don't have an account? ", color = Color.Gray)
                 Text(
@@ -226,7 +193,6 @@ fun LoginScreen(navController: NavController) {
             }
         }
 
-        // 9) Show toast if needed
         showToast?.let {
             ShowToast(it)
             showToast = null

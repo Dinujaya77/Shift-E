@@ -40,36 +40,39 @@ import com.example.shift_e.ui.components.ShowToast
 import com.example.shift_e.ui.theme.BlackLight
 import com.example.shift_e.ui.theme.CreamBackground
 import com.example.shift_e.ui.theme.TealDark
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
 import java.util.*
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProfileCreationScreen(navController: NavController) {
-    val context       = LocalContext.current
-    val focusManager  = LocalFocusManager.current
-    val lastReq       = remember { FocusRequester() }
-    val birthdayReq   = remember { FocusRequester() }
-    val genderReq     = remember { FocusRequester() }
-    val mobileReq     = remember { FocusRequester() }
+    val context = LocalContext.current
+    val focusManager = LocalFocusManager.current
+    val lastReq = remember { FocusRequester() }
+    val birthdayReq = remember { FocusRequester() }
+    val genderReq = remember { FocusRequester() }
+    val mobileReq = remember { FocusRequester() }
 
-    var firstName  by remember { mutableStateOf("") }
-    var lastName   by remember { mutableStateOf("") }
-    var birthday   by remember { mutableStateOf("") }
-    var mobile     by remember { mutableStateOf("") }
-    var gender     by remember { mutableStateOf("") }
-    var expanded   by remember { mutableStateOf(false) }
-    var showToast  by remember { mutableStateOf<String?>(null) }
+    var firstName by remember { mutableStateOf("") }
+    var lastName by remember { mutableStateOf("") }
+    var birthday by remember { mutableStateOf("") }
+    var mobile by remember { mutableStateOf("") }
+    var gender by remember { mutableStateOf("") }
+    var expanded by remember { mutableStateOf(false) }
+    var showToast by remember { mutableStateOf<String?>(null) }
 
     val genderOptions = listOf("Male", "Female", "Other")
+    val db = FirebaseFirestore.getInstance()
+    val auth = FirebaseAuth.getInstance()
+    val uid = auth.currentUser?.uid
 
-    // Helper to open DatePicker
     fun openDatePicker() {
         val now = Calendar.getInstance()
         DatePickerDialog(
             context,
             { _: DatePicker, y, m, d ->
                 birthday = "%04d-%02d-%02d".format(y, m + 1, d)
-                // after picking move to gender
                 genderReq.requestFocus()
             },
             now.get(Calendar.YEAR),
@@ -79,17 +82,13 @@ fun ProfileCreationScreen(navController: NavController) {
     }
 
     Box(Modifier.fillMaxSize()) {
-        // Header image
         Image(
             painter = painterResource(R.drawable.login_background),
             contentDescription = null,
             contentScale = ContentScale.Crop,
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(300.dp)
+            modifier = Modifier.fillMaxWidth().height(300.dp)
         )
 
-        // Title overlay
         Text(
             "Complete Profile",
             color = Color.White,
@@ -97,7 +96,6 @@ fun ProfileCreationScreen(navController: NavController) {
             modifier = Modifier.offset(x = 20.dp, y = 160.dp)
         )
 
-        // Scrollable form
         Column(
             Modifier
                 .fillMaxWidth()
@@ -108,15 +106,7 @@ fun ProfileCreationScreen(navController: NavController) {
                 .padding(24.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text(
-                text = "First Name",
-                color = BlackLight,
-                style = MaterialTheme.typography.titleMedium,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(bottom = 10.dp)
-            )
-            // First Name
+            Text("First Name", color = BlackLight, style = MaterialTheme.typography.titleMedium)
             PillTextField(
                 value = firstName,
                 onValueChange = { firstName = it },
@@ -128,84 +118,45 @@ fun ProfileCreationScreen(navController: NavController) {
             )
             Spacer(Modifier.height(16.dp))
 
-            Text(
-                text = "Last Name",
-                color = BlackLight,
-                style = MaterialTheme.typography.titleMedium,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(bottom = 10.dp)
-            )
-
-            // Last Name
+            Text("Last Name", color = BlackLight, style = MaterialTheme.typography.titleMedium)
             PillTextField(
                 value = lastName,
                 onValueChange = { lastName = it },
                 placeholder = "Last name",
                 leadingIcon = { Icon(Icons.Default.Person, null, tint = TealDark) },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .focusRequester(lastReq),
+                modifier = Modifier.fillMaxWidth().focusRequester(lastReq),
                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
                 keyboardActions = KeyboardActions(onNext = { openDatePicker() })
             )
             Spacer(Modifier.height(16.dp))
 
-            Text(
-                text = "BirthDay",
-                color = BlackLight,
-                style = MaterialTheme.typography.titleMedium,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(bottom = 10.dp)
-            )
-
-            // Birthday (clickable)
+            Text("BirthDay", color = BlackLight, style = MaterialTheme.typography.titleMedium)
             PillTextField(
                 value = birthday,
                 onValueChange = {},
                 placeholder = "Birthday (YYYY-MM-DD)",
                 leadingIcon = { Icon(Icons.Default.CalendarToday, null, tint = TealDark) },
                 enabled = false,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable { openDatePicker() }
-                    .focusRequester(birthdayReq),
-                keyboardOptions = KeyboardOptions.Default,
-                keyboardActions = KeyboardActions.Default
+                modifier = Modifier.fillMaxWidth().clickable { openDatePicker() }.focusRequester(birthdayReq)
             )
             Spacer(Modifier.height(16.dp))
 
-            Text(
-                text = "Gender",
-                color = BlackLight,
-                style = MaterialTheme.typography.titleMedium,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(bottom = 10.dp)
-            )
-
-            // Gender dropdown
+            Text("Gender", color = BlackLight, style = MaterialTheme.typography.titleMedium)
             Box(Modifier.fillMaxWidth()) {
                 PillTextField(
                     value = gender,
                     onValueChange = {},
                     placeholder = "Select gender",
-                    trailingIcon = {
-                        Icon(Icons.Default.ArrowDropDown, null, tint = TealDark)
-                    },
+                    trailingIcon = { Icon(Icons.Default.ArrowDropDown, null, tint = TealDark) },
                     enabled = false,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable { expanded = true }
-                        .focusRequester(genderReq),
+                    modifier = Modifier.fillMaxWidth().clickable { expanded = true }.focusRequester(genderReq),
                     keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
                     keyboardActions = KeyboardActions(onNext = { mobileReq.requestFocus() })
                 )
                 DropdownMenu(
                     expanded = expanded,
                     onDismissRequest = { expanded = false },
-                    modifier = Modifier.fillMaxWidth(fraction = 0.7f)
+                    modifier = Modifier.fillMaxWidth(0.7f)
                 ) {
                     genderOptions.forEach { option ->
                         DropdownMenuItem(
@@ -221,59 +172,30 @@ fun ProfileCreationScreen(navController: NavController) {
             }
             Spacer(Modifier.height(16.dp))
 
-            Text(
-                text = "Mobile Number",
-                color = BlackLight,
-                style = MaterialTheme.typography.titleMedium,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(bottom = 10.dp)
-            )
-
-            // Mobile
+            Text("Mobile Number", color = BlackLight, style = MaterialTheme.typography.titleMedium)
             PillTextField(
                 value = mobile,
                 onValueChange = { mobile = it },
                 placeholder = "07XXXXXXXX",
                 leadingIcon = { Icon(Icons.Default.Phone, null, tint = TealDark) },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .focusRequester(mobileReq),
-                keyboardOptions = KeyboardOptions(
-                    keyboardType = KeyboardType.Phone,
-                    imeAction = ImeAction.Done
-                ),
+                modifier = Modifier.fillMaxWidth().focusRequester(mobileReq),
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone, imeAction = ImeAction.Done),
                 keyboardActions = KeyboardActions(onDone = {
                     focusManager.clearFocus()
-                    showToast = when {
-                        !mobile.matches(Regex("^07\\d{8}\$")) ->
-                            "Invalid SL mobile"
-                        else -> {
-                            navController.navigate("dashboard?username=$firstName") {
-                                popUpTo("login") { inclusive = true }
-                            }
-                            null
-                        }
-                    }
+                    handleProfileSubmit(
+                        uid, firstName, lastName, birthday, gender, mobile,
+                        db, navController, showToastSetter = { showToast = it }
+                    )
                 })
             )
             Spacer(Modifier.height(24.dp))
 
-            // Next
             PillButton("NEXT", {
                 focusManager.clearFocus()
-                showToast = when {
-                    firstName.isBlank() || lastName.isBlank() ||
-                            birthday.isBlank() || gender.isBlank() ||
-                            !mobile.matches(Regex("^07\\d{8}\$")) ->
-                        "Fill all fields correctly"
-                    else -> {
-                        navController.navigate("dashboard?username=$firstName") {
-                            popUpTo("login") { inclusive = true }
-                        }
-                        null
-                    }
-                }
+                handleProfileSubmit(
+                    uid, firstName, lastName, birthday, gender, mobile,
+                    db, navController, showToastSetter = { showToast = it }
+                )
             }, modifier = Modifier.fillMaxWidth().height(48.dp))
 
             showToast?.let {
@@ -284,4 +206,46 @@ fun ProfileCreationScreen(navController: NavController) {
             Spacer(Modifier.height(40.dp))
         }
     }
+}
+
+private fun handleProfileSubmit(
+    uid: String?,
+    firstName: String,
+    lastName: String,
+    birthday: String,
+    gender: String,
+    mobile: String,
+    db: FirebaseFirestore,
+    navController: NavController,
+    showToastSetter: (String?) -> Unit
+) {
+    if (uid == null) {
+        showToastSetter("User not authenticated")
+        return
+    }
+
+    if (firstName.isBlank() || lastName.isBlank() || birthday.isBlank() || gender.isBlank()
+        || !mobile.matches(Regex("^07\\d{8}\$"))
+    ) {
+        showToastSetter("Fill all fields correctly")
+        return
+    }
+
+    val data = mapOf(
+        "firstName" to firstName,
+        "lastName" to lastName,
+        "birthday" to birthday,
+        "gender" to gender,
+        "mobile" to mobile
+    )
+
+    db.collection("users").document(uid).update(data)
+        .addOnSuccessListener {
+            navController.navigate("dashboard?username=$firstName") {
+                popUpTo("login") { inclusive = true }
+            }
+        }
+        .addOnFailureListener {
+            showToastSetter("Failed to save profile")
+        }
 }

@@ -37,8 +37,16 @@ fun SignUpScreen(navController: NavController) {
     var email by remember { mutableStateOf("") }
     var showToast by remember { mutableStateOf<String?>(null) }
 
+    fun validateAndProceed() {
+        val trimmedEmail = email.trim().lowercase()
+        if (!android.util.Patterns.EMAIL_ADDRESS.matcher(trimmedEmail).matches()) {
+            showToast = "Please enter a valid email"
+        } else {
+            navController.navigate("signup_otp?email=$trimmedEmail")
+        }
+    }
+
     Box(Modifier.fillMaxSize()) {
-        // 1) Header image
         Image(
             painter = painterResource(R.drawable.login_background),
             contentDescription = null,
@@ -48,16 +56,13 @@ fun SignUpScreen(navController: NavController) {
                 .height(300.dp)
         )
 
-        // 2) Overlayed screen title
         Text(
             text = "Sign Up",
             color = Color.White,
             style = MaterialTheme.typography.displayMedium.copy(fontWeight = FontWeight.Bold),
-            modifier = Modifier
-                .offset(x = 20.dp, y = 195.dp)
+            modifier = Modifier.offset(x = 20.dp, y = 195.dp)
         )
 
-        // 3) Cream card with rounded top corners
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -67,7 +72,6 @@ fun SignUpScreen(navController: NavController) {
                 .padding(horizontal = 24.dp, vertical = 32.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // 4) Label above the field
             Text(
                 text = "Email",
                 color = BlackLight,
@@ -77,7 +81,6 @@ fun SignUpScreen(navController: NavController) {
                     .padding(bottom = 16.dp)
             )
 
-            // 5) Email field
             PillTextField(
                 value = email,
                 onValueChange = { email = it },
@@ -86,39 +89,23 @@ fun SignUpScreen(navController: NavController) {
                 isPassword = false,
                 keyboardOptions = KeyboardOptions(
                     keyboardType = KeyboardType.Email,
-                    imeAction    = ImeAction.Done
+                    imeAction = ImeAction.Done
                 ),
                 keyboardActions = KeyboardActions(
-                    onDone = {
-                        showToast = if (!android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
-                            "Please enter a valid email"
-                        } else {
-                            navController.navigate("signup_otp?email=${email}")
-                            null
-                        }
-                    }
+                    onDone = { validateAndProceed() }
                 )
             )
             Spacer(Modifier.height(50.dp))
 
-            // 6) NEXT button
             PillButton(
                 text = "NEXT",
-                onClick = {
-                    showToast = if (!android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
-                        "Please enter a valid email"
-                    } else {
-                        navController.navigate("signup_otp?email=${email}")
-                        null
-                    }
-                },
+                onClick = { validateAndProceed() },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(48.dp)
             )
             Spacer(Modifier.height(20.dp))
 
-            // 7) Google Sign‑Up (disabled)
             OutlinedButton(
                 onClick = { showToast = "Feature under implementation" },
                 enabled = false,
@@ -140,9 +127,9 @@ fun SignUpScreen(navController: NavController) {
                 Spacer(Modifier.width(8.dp))
                 Text("Sign up with Google", fontSize = 14.sp)
             }
+
             Spacer(Modifier.height(150.dp))
 
-            // 8) Footer link back to Login
             Row(horizontalArrangement = Arrangement.Center) {
                 Text("Already have an account? ", color = Color.Gray)
                 Text(
@@ -154,7 +141,6 @@ fun SignUpScreen(navController: NavController) {
             }
         }
 
-        // 9) Toast for validation
         showToast?.let {
             ShowToast(it)
             showToast = null
