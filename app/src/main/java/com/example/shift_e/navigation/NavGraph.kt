@@ -5,18 +5,9 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
-import com.example.shift_e.ui.screens.DashboardScreen
-import com.example.shift_e.ui.screens.DriverScreen
-import com.example.shift_e.ui.screens.LoginScreen
-import com.example.shift_e.ui.screens.PaymentScreen
-import com.example.shift_e.ui.screens.ProfileCreationScreen
-import com.example.shift_e.ui.screens.ProfileScreen
-import com.example.shift_e.ui.screens.QrScannerScreen
-import com.example.shift_e.ui.screens.SignUpOtpScreen
-import com.example.shift_e.ui.screens.SignUpScreen
-import com.example.shift_e.ui.screens.TripsScreen
-
-//import com.example.shift_e.ui.screens.SignUpOtpScreen
+import com.example.shift_e.ui.screens.*
+import com.example.shift_e.ui.screens.dashboard.DashboardScreen
+import com.example.shift_e.ui.screens.profile.ProfileScreen
 
 @Composable
 fun AppNavGraph(navController: NavHostController, startDestination: String = "login") {
@@ -30,21 +21,10 @@ fun AppNavGraph(navController: NavHostController, startDestination: String = "lo
         composable(
             "signup_otp?email={email}",
             arguments = listOf(navArgument("email") { defaultValue = "" })
-        ) { backStackEntry ->
-            val email = backStackEntry.arguments?.getString("email") ?: ""
-//            SignUpOtpScreen(navController, email)
-        }
-        // Add other screens here as you implement them
-        composable(
-            route = "signup_otp?email={email}",
-            arguments = listOf(navArgument("email") {
-                defaultValue = ""
-            })
         ) { backStack ->
             val email = backStack.arguments?.getString("email") ?: ""
             SignUpOtpScreen(navController, email)
         }
-//         4) Profile creation (after OTP)
         composable("profilecreation") {
             ProfileCreationScreen(navController)
         }
@@ -60,19 +40,15 @@ fun AppNavGraph(navController: NavHostController, startDestination: String = "lo
         composable("driverscreen") {
             DriverScreen(navController)
         }
+
+        // ✅ Use ViewModel for username internally
+        composable("dashboard") {
+            DashboardScreen(navController)
+        }
+
+        // ✅ Same for profile screen
         composable("profile") {
             ProfileScreen(navController)
         }
-//        // 5) Dashboard
-        composable(
-        route = "dashboard?username={username}",
-        arguments = listOf(navArgument("username") {
-            defaultValue = "user"
-        })
-
-    ) { backStack ->
-        val user = backStack.arguments?.getString("username") ?: "user"
-        DashboardScreen(navController, username = user)
-    }
     }
 }
