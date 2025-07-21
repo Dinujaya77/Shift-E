@@ -2,6 +2,7 @@ package com.example.shift_e.ui.screens
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -16,6 +17,8 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
@@ -29,6 +32,10 @@ import com.example.shift_e.ui.theme.TealDark
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import androidx.compose.ui.unit.Dp
+import com.example.shift_e.ui.theme.GreenDark
+import com.example.shift_e.ui.theme.GreenExtraLight
+import com.example.shift_e.ui.theme.GreenLight
+import com.example.shift_e.ui.theme.ShadedWhite
 
 data class LocationData(val id: String, val name: String, val ridesAvailable: Int)
 data class RideActivity(val location: String, val date: String, val time: String)
@@ -74,161 +81,176 @@ fun DashboardScreen(navController: NavController, username: String = "User") {
                 }
         }
     }
+    val backgroundBrush = Brush.verticalGradient(
+        colorStops = arrayOf(
+            0.0f to GreenDark,
+            0.6f to GreenLight,
+            1.0f to GreenExtraLight
+        )
+    )
+    Box(modifier = Modifier.fillMaxSize().background(brush = backgroundBrush)) {
+        Scaffold(modifier = Modifier.fillMaxSize(),
+            containerColor = Color.Transparent,
+            topBar = {
+                TopAppBar(
+                    title = { Text("Welcome back, $username", style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold)) },
+                    colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = Color.Transparent,
+                        titleContentColor = Color.Black
+                    ),
+                    actions = {
+                        IconButton(onClick = { navController.navigate("profile") }) {
+                            Image(
+                                painter = painterResource(R.drawable.ic_profile),
+                                contentDescription = "Profile",
+                                modifier = Modifier
+                                    .size(40.dp)
+                                    .clip(MaterialTheme.shapes.small)
+                                    .padding(4.dp),
+                            )
+                        }
+                    }
+                )
+            },
+            bottomBar = { BottomNavBar(navController) }) { padding ->
+            LazyColumn(
+                modifier = Modifier
+                    .padding(padding)
+                    .fillMaxSize()
+                    .padding(horizontal = 16.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                item{
+                    Spacer(Modifier.height(8.dp))
+                }
 
-    Scaffold(bottomBar = { BottomNavBar(navController) }) { padding ->
-        LazyColumn(
-            modifier = Modifier
-                .padding(padding)
-                .fillMaxSize()
-                .padding(horizontal = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            item {
-                Spacer(modifier = Modifier.height(16.dp))
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text("Welcome back, $username", style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold))
-                    Image(
-                        painter = painterResource(R.drawable.profile_placeholder),
-                        contentDescription = null,
+                item {
+                    Box(
                         modifier = Modifier
-                            .size(40.dp)
-                            .clip(RoundedCornerShape(50))
-                            .background(Color.Gray)
-                            .clickable { navController.navigate("profile") },
-                        contentScale = ContentScale.Crop
-                    )
-                }
-            }
+                            .fillMaxWidth()
+                            .height(200.dp)
+                            .shadow(60.dp, RoundedCornerShape(16.dp))
+                            .clip(RoundedCornerShape(16.dp))
 
-            item {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(200.dp)
-                        .clip(RoundedCornerShape(16.dp))
-                ) {
-                    Image(
-                        painter = painterResource(id = R.drawable.map_placeholder),
-                        contentDescription = "Map",
-                        modifier = Modifier.matchParentSize(),
-                        contentScale = ContentScale.Crop
-                    )
 
-                    locations.getOrNull(0)?.let { loc ->
-                        MapPointer(x = 60.dp, y = 40.dp, loc) { selectedLocation = loc }
-                    }
 
-                    locations.getOrNull(1)?.let { loc ->
-                        MapPointer(x = 250.dp, y = 100.dp, loc) { selectedLocation = loc }
+                    ) {
+                        Image(
+                            painter = painterResource(id = R.drawable.map_placeholder),
+                            contentDescription = "Map",
+                            modifier = Modifier.matchParentSize(),
+                            contentScale = ContentScale.Crop
+                        )
+
+                        locations.getOrNull(0)?.let { loc ->
+                            MapPointer(x = 60.dp, y = 40.dp, loc) { selectedLocation = loc }
+                        }
+
+                        locations.getOrNull(1)?.let { loc ->
+                            MapPointer(x = 250.dp, y = 100.dp, loc) { selectedLocation = loc }
+                        }
                     }
                 }
-            }
 
-            item {
-                selectedLocation?.let { loc ->
+                item {
+                    selectedLocation?.let { loc ->
+                        Card(
+                            colors = CardDefaults.cardColors(containerColor = Color(0xFFB1D34B)),
+                            shape = RoundedCornerShape(12.dp),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Column(modifier = Modifier.padding(16.dp)) {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Text("From ${loc.name}", fontWeight = FontWeight.Bold, fontSize = 18.sp)
+                                    Text("Leaving Now ▾")
+                                }
+                                Spacer(Modifier.height(8.dp))
+                                Text("Number Rides Currently available: ${loc.ridesAvailable}")
+                                Text("Estimated Price: 50/=")
+                                Spacer(Modifier.height(8.dp))
+                                Button(onClick = {}, colors = ButtonDefaults.buttonColors(containerColor = Color.Black)) {
+                                    Text("Book Now", color = Color.White)
+                                }
+                            }
+                        }
+                    }
+                }
+
+                item {
                     Card(
-                        colors = CardDefaults.cardColors(containerColor = Color(0xFFB1D34B)),
-                        shape = RoundedCornerShape(12.dp),
+                        colors = CardDefaults.cardColors(containerColor = Color(0xFFCDF442)),
+                        shape = RoundedCornerShape(20.dp),
                         modifier = Modifier.fillMaxWidth()
                     ) {
                         Column(modifier = Modifier.padding(16.dp)) {
+                            Text("Promotions", fontWeight = FontWeight.Bold, fontSize = 18.sp)
+                            Text("You have multiple promotions available")
+                            Spacer(Modifier.height(8.dp))
+                            Button(
+                                onClick = { /* Handle */ },
+                                shape = RoundedCornerShape(50),
+                                colors = ButtonDefaults.buttonColors(containerColor = Color.Black)
+                            ) {
+                                Text("Check Now!", color = Color.White)
+                            }
+
+                            Spacer(Modifier.height(16.dp))
+
+                            LazyRow(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                                items(samplePromotions) { promo -> PromotionItem(promo) }
+                            }
+                        }
+                    }
+                }
+
+                item {
+                    Text("Activity", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                }
+
+                if (activities.isEmpty()) {
+                    item {
+                        Text("No recent activity.", color = Color.Gray, fontSize = 14.sp)
+                    }
+                } else {
+                    items(activities) { activity ->
+                        Card(
+                            shape = RoundedCornerShape(12.dp),
+                            colors = CardDefaults.cardColors(containerColor = TealDark),
+                            modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)
+                        ) {
                             Row(
-                                modifier = Modifier.fillMaxWidth(),
+                                modifier = Modifier
+                                    .padding(16.dp)
+                                    .fillMaxWidth(),
                                 horizontalArrangement = Arrangement.SpaceBetween,
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
-                                Text("From ${loc.name}", fontWeight = FontWeight.Bold, fontSize = 18.sp)
-                                Text("Leaving Now ▾")
-                            }
-                            Spacer(Modifier.height(8.dp))
-                            Text("Number Rides Currently available: ${loc.ridesAvailable}")
-                            Text("Estimated Price: 50/=")
-                            Spacer(Modifier.height(8.dp))
-                            Button(onClick = {}, colors = ButtonDefaults.buttonColors(containerColor = Color.Black)) {
-                                Text("Book Now", color = Color.White)
-                            }
-                        }
-                    }
-                }
-            }
-
-            item {
-                Card(
-                    colors = CardDefaults.cardColors(containerColor = Color(0xFFCDF442)),
-                    shape = RoundedCornerShape(20.dp),
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Column(modifier = Modifier.padding(16.dp)) {
-                        Text("Promotions", fontWeight = FontWeight.Bold, fontSize = 18.sp)
-                        Text("You have multiple promotions available")
-                        Spacer(Modifier.height(8.dp))
-                        Button(
-                            onClick = { /* Handle */ },
-                            shape = RoundedCornerShape(50),
-                            colors = ButtonDefaults.buttonColors(containerColor = Color.Black)
-                        ) {
-                            Text("Check Now!", color = Color.White)
-                        }
-
-                        Spacer(Modifier.height(16.dp))
-
-                        LazyRow(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                            items(samplePromotions) { promo -> PromotionItem(promo) }
-                        }
-                    }
-                }
-            }
-
-            item {
-                Text("Activity", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-            }
-
-            if (activities.isEmpty()) {
-                item {
-                    Text("No recent activity.", color = Color.Gray, fontSize = 14.sp)
-                }
-            } else {
-                items(activities) { activity ->
-                    Card(
-                        shape = RoundedCornerShape(12.dp),
-                        colors = CardDefaults.cardColors(containerColor = TealDark),
-                        modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)
-                    ) {
-                        Row(
-                            modifier = Modifier
-                                .padding(16.dp)
-                                .fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Icon(Icons.Default.DirectionsBike, contentDescription = null, tint = Color.White)
-                                Spacer(modifier = Modifier.width(8.dp))
-                                Column {
-                                    Text(activity.location, color = Color.White)
-                                    Text("${activity.date} • ${activity.time}", color = Color.Gray, fontSize = 12.sp)
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Icon(Icons.Default.DirectionsBike, contentDescription = null, tint = Color.White)
+                                    Spacer(modifier = Modifier.width(8.dp))
+                                    Column {
+                                        Text(activity.location, color = Color.White)
+                                        Text("${activity.date} • ${activity.time}", color = Color.Gray, fontSize = 12.sp)
+                                    }
+                                }
+                                Button(
+                                    onClick = { /* Rebook */ },
+                                    colors = ButtonDefaults.buttonColors(containerColor = Color.Black)
+                                ) {
+                                    Text("Re-book", color = Color.White, fontSize = 12.sp)
                                 }
                             }
-                            Button(
-                                onClick = { /* Rebook */ },
-                                colors = ButtonDefaults.buttonColors(containerColor = Color.Black)
-                            ) {
-                                Text("Re-book", color = Color.White, fontSize = 12.sp)
-                            }
                         }
                     }
                 }
-            }
-
-            item {
-                Spacer(modifier = Modifier.height(100.dp))
             }
         }
     }
+
 }
 
 @Composable
