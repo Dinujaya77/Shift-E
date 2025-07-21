@@ -14,10 +14,12 @@ import androidx.compose.material3.Surface
 import androidx.navigation.compose.rememberNavController
 import com.example.shift_e.navigation.AppNavGraph
 import com.example.shift_e.ui.theme.Shift_ETheme
+import com.google.firebase.FirebaseApp
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        FirebaseApp.initializeApp(this)
         enableEdgeToEdge()
         setContent {
             Shift_ETheme {
