@@ -1,54 +1,51 @@
-package com.example.shift_e.ui.screens
+package com.example.shift_e.ui.screens.dashboard
 
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.lazy.*
+import androidx.compose.foundation.shape.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DirectionsBike
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
+import androidx.compose.ui.*
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.*
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
+import androidx.compose.ui.unit.*
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.shift_e.R
 import com.example.shift_e.ui.components.BottomNavBar
-import com.example.shift_e.ui.theme.TealDark
+import com.example.shift_e.ui.theme.*
+import com.example.shift_e.ui.viewmodel.UserViewModel
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
-import androidx.compose.ui.unit.Dp
-import com.example.shift_e.ui.theme.GreenDark
-import com.example.shift_e.ui.theme.GreenExtraLight
-import com.example.shift_e.ui.theme.GreenLight
-import com.example.shift_e.ui.theme.ShadedWhite
 
 data class LocationData(val id: String, val name: String, val ridesAvailable: Int)
 data class RideActivity(val location: String, val date: String, val time: String)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun DashboardScreen(navController: NavController, username: String = "User") {
+fun DashboardScreen(
+    navController: NavController,
+    userViewModel: UserViewModel = viewModel()
+) {
+    val user by userViewModel.userData.collectAsState()
     val db = FirebaseFirestore.getInstance()
     val uid = FirebaseAuth.getInstance().currentUser?.uid
 
     var locations by remember { mutableStateOf<List<LocationData>>(emptyList()) }
     var selectedLocation by remember { mutableStateOf<LocationData?>(null) }
     var activities by remember { mutableStateOf<List<RideActivity>>(emptyList()) }
+
+    // Load user data (if not already triggered)
+    LaunchedEffect(Unit) {
+        userViewModel.loadUserData()
+    }
 
     // Load locations
     LaunchedEffect(Unit) {
@@ -64,12 +61,10 @@ fun DashboardScreen(navController: NavController, username: String = "User") {
             }
     }
 
-    // Load activity list
+    // Load ride activity
     LaunchedEffect(uid) {
         if (uid != null) {
-            db.collection("users").document(uid)
-                .collection("activities")
-                .get()
+            db.collection("users").document(uid).collection("activities").get()
                 .addOnSuccessListener { result ->
                     activities = result.documents.mapNotNull { doc ->
                         val loc = doc.getString("location")
@@ -81,6 +76,7 @@ fun DashboardScreen(navController: NavController, username: String = "User") {
                 }
         }
     }
+
     val backgroundBrush = Brush.verticalGradient(
         colorStops = arrayOf(
             0.0f to GreenDark,
@@ -88,12 +84,18 @@ fun DashboardScreen(navController: NavController, username: String = "User") {
             1.0f to GreenExtraLight
         )
     )
+
     Box(modifier = Modifier.fillMaxSize().background(brush = backgroundBrush)) {
-        Scaffold(modifier = Modifier.fillMaxSize(),
+        Scaffold(
             containerColor = Color.Transparent,
             topBar = {
                 TopAppBar(
-                    title = { Text("Welcome back, $username", style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold)) },
+                    title = {
+                        Text(
+                            "Welcome back, ${user.firstName}",
+                            style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold)
+                        )
+                    },
                     colors = TopAppBarDefaults.topAppBarColors(
                         containerColor = Color.Transparent,
                         titleContentColor = Color.Black
@@ -112,7 +114,8 @@ fun DashboardScreen(navController: NavController, username: String = "User") {
                     }
                 )
             },
-            bottomBar = { BottomNavBar(navController) }) { padding ->
+            bottomBar = { BottomNavBar(navController) }
+        ) { padding ->
             LazyColumn(
                 modifier = Modifier
                     .padding(padding)
@@ -120,10 +123,9 @@ fun DashboardScreen(navController: NavController, username: String = "User") {
                     .padding(horizontal = 16.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                item{
-                    Spacer(Modifier.height(8.dp))
-                }
+                item { Spacer(Modifier.height(8.dp)) }
 
+                // Map
                 item {
                     Box(
                         modifier = Modifier
@@ -131,9 +133,6 @@ fun DashboardScreen(navController: NavController, username: String = "User") {
                             .height(200.dp)
                             .shadow(60.dp, RoundedCornerShape(16.dp))
                             .clip(RoundedCornerShape(16.dp))
-
-
-
                     ) {
                         Image(
                             painter = painterResource(id = R.drawable.map_placeholder),
@@ -141,17 +140,12 @@ fun DashboardScreen(navController: NavController, username: String = "User") {
                             modifier = Modifier.matchParentSize(),
                             contentScale = ContentScale.Crop
                         )
-
-                        locations.getOrNull(0)?.let { loc ->
-                            MapPointer(x = 60.dp, y = 40.dp, loc) { selectedLocation = loc }
-                        }
-
-                        locations.getOrNull(1)?.let { loc ->
-                            MapPointer(x = 250.dp, y = 100.dp, loc) { selectedLocation = loc }
-                        }
+                        locations.getOrNull(0)?.let { MapPointer(x = 60.dp, y = 40.dp, location = it) { selectedLocation = it } }
+                        locations.getOrNull(1)?.let { MapPointer(x = 250.dp, y = 100.dp, location = it) { selectedLocation = it } }
                     }
                 }
 
+                // Ride booking info
                 item {
                     selectedLocation?.let { loc ->
                         Card(
@@ -169,7 +163,7 @@ fun DashboardScreen(navController: NavController, username: String = "User") {
                                     Text("Leaving Now ▾")
                                 }
                                 Spacer(Modifier.height(8.dp))
-                                Text("Number Rides Currently available: ${loc.ridesAvailable}")
+                                Text("Number of rides currently available: ${loc.ridesAvailable}")
                                 Text("Estimated Price: 50/=")
                                 Spacer(Modifier.height(8.dp))
                                 Button(onClick = {}, colors = ButtonDefaults.buttonColors(containerColor = Color.Black)) {
@@ -180,6 +174,7 @@ fun DashboardScreen(navController: NavController, username: String = "User") {
                     }
                 }
 
+                // Promotions
                 item {
                     Card(
                         colors = CardDefaults.cardColors(containerColor = Color(0xFFCDF442)),
@@ -188,7 +183,7 @@ fun DashboardScreen(navController: NavController, username: String = "User") {
                     ) {
                         Column(modifier = Modifier.padding(16.dp)) {
                             Text("Promotions", fontWeight = FontWeight.Bold, fontSize = 18.sp)
-                            Text("You have multiple promotions available")
+                            Text("You have ${user.totalRides} rides. Keep going for more discounts!")
                             Spacer(Modifier.height(8.dp))
                             Button(
                                 onClick = { /* Handle */ },
@@ -197,9 +192,7 @@ fun DashboardScreen(navController: NavController, username: String = "User") {
                             ) {
                                 Text("Check Now!", color = Color.White)
                             }
-
                             Spacer(Modifier.height(16.dp))
-
                             LazyRow(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                                 items(samplePromotions) { promo -> PromotionItem(promo) }
                             }
@@ -207,10 +200,12 @@ fun DashboardScreen(navController: NavController, username: String = "User") {
                     }
                 }
 
+                // Activity header
                 item {
                     Text("Activity", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
                 }
 
+                // Ride history
                 if (activities.isEmpty()) {
                     item {
                         Text("No recent activity.", color = Color.Gray, fontSize = 14.sp)
@@ -250,7 +245,6 @@ fun DashboardScreen(navController: NavController, username: String = "User") {
             }
         }
     }
-
 }
 
 @Composable
