@@ -220,7 +220,7 @@ fun PaymentScreen(navController: NavController) {
                         }
 
                         val iconRes = when (selectedOption) {
-                            PaymentOption.CARD   -> R.drawable.ic_credit_card
+                            PaymentOption.CARD   -> R.drawable.card_amex_black
                             PaymentOption.WALLET   -> R.drawable.ic_wallet
                             PaymentOption.PAYPAL -> R.drawable.ic_paypal
                         }
