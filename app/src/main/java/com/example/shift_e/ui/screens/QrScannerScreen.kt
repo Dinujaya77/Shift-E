@@ -11,10 +11,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material3.Button
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.Text
+import androidx.compose.material3.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Fingerprint
 import androidx.compose.runtime.*
@@ -36,6 +33,7 @@ import com.google.accompanist.permissions.rememberPermissionState
 import com.google.mlkit.vision.barcode.BarcodeScanning
 import com.google.mlkit.vision.barcode.common.Barcode
 import com.google.mlkit.vision.common.InputImage
+import org.json.JSONObject
 import java.util.concurrent.Executors
 
 @OptIn(ExperimentalPermissionsApi::class)
@@ -72,12 +70,25 @@ fun QrScannerScreen(navController: NavController) {
                             .also { analysis ->
                                 analysis.setAnalyzer(executor) { imageProxy ->
                                     processImageProxy(scanner, imageProxy) { qr ->
-                                        Log.d("QrScanner", "Detected QR: $qr")
-                                        isScanning = false
-                                        navController.navigate("driverscreen")
+                                        try {
+                                            val json = JSONObject(qr)
+                                            val key = json.optString("Key")
+                                            val bikeId = json.optInt("BikeID", -1)
+
+                                            if (key == "qgwjerty1234" && bikeId != -1) {
+                                                Log.d("QrScanner", "Valid QR with BikeID: $bikeId")
+                                                isScanning = false
+                                                navController.navigate("driverscreen?bikeId=$bikeId")
+                                            } else {
+                                                Log.w("QrScanner", "Invalid QR Code content.")
+                                            }
+                                        } catch (e: Exception) {
+                                            Log.e("QrScanner", "Invalid JSON format", e)
+                                        }
                                     }
                                 }
                             }
+
                         cameraProvider.unbindAll()
                         cameraProvider.bindToLifecycle(
                             lifecycleOwner,
@@ -109,8 +120,7 @@ fun QrScannerScreen(navController: NavController) {
                     )
 
                     Row(
-                        Modifier
-                            .align(Alignment.Center)
+                        Modifier.align(Alignment.Center)
                     ) {
                         Box(
                             Modifier
@@ -138,25 +148,6 @@ fun QrScannerScreen(navController: NavController) {
                             .background(ShadowBlack)
                             .align(Alignment.BottomCenter)
                     )
-
-                    IconButton(
-                        onClick = {
-                            isScanning = false
-                            navController.navigate("driverscreen")
-                        },
-                        modifier = Modifier
-                            .size(64.dp)
-                            .align(Alignment.BottomCenter)
-                            .padding(bottom = 24.dp)
-                            .background(Color.White, shape = CircleShape)
-                    ) {
-                        Icon(
-                            Icons.Filled.Fingerprint,
-                            contentDescription = "Scan",
-                            tint = Charcoal,
-                            modifier = Modifier.fillMaxSize(0.6f)
-                        )
-                    }
                 }
             }
         }

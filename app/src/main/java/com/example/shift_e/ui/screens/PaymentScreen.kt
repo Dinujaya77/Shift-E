@@ -22,20 +22,25 @@ import com.example.shift_e.R
 import com.example.shift_e.ui.components.BottomNavBar
 import com.example.shift_e.ui.components.BoxContainer
 import com.example.shift_e.ui.components.CardInfo
+import com.example.shift_e.ui.components.CardType
 import com.example.shift_e.ui.components.PaymentCardManager
 import com.example.shift_e.ui.components.PaymentMethodPopup
 import com.example.shift_e.ui.enums.PaymentOption
 import com.example.shift_e.ui.theme.*
+import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun PaymentScreen(navController: NavController) {
+fun PaymentScreen(navController: NavController, originArg: String) {
     val db = FirebaseFirestore.getInstance()
-    val location1 = "nsbm"
-    val location2 = "school_junction"
-    var origin by remember { mutableStateOf(location1) }
-    var destination by remember { mutableStateOf(location2) }
+    val uid = FirebaseAuth.getInstance().currentUser?.uid ?: return
+
+    val normalizedOrigin = originArg.lowercase() // force lowercase for consistency
+    val normalizedDestination = if (normalizedOrigin == "nsbm") "school_junction" else "nsbm"
+
+    var origin by remember { mutableStateOf(normalizedOrigin) }
+    var destination by remember { mutableStateOf(normalizedDestination) }
 
     var ridesAvailable by remember { mutableStateOf(0) }
     var charging by remember { mutableStateOf(0) }
@@ -44,6 +49,37 @@ fun PaymentScreen(navController: NavController) {
     var showCardManager by remember { mutableStateOf(false) }
     val cards = remember { mutableStateListOf<CardInfo>() }
     var selectedCardId by remember { mutableStateOf<String?>(null) }
+
+    // Load card list from Firestore
+    LaunchedEffect(Unit) {
+        db.collection("users").document(uid).collection("cards").get()
+            .addOnSuccessListener { result ->
+                val loadedCards = result.documents.mapNotNull { doc ->
+                    val type = doc.getString("type") ?: return@mapNotNull null
+                    val name = doc.getString("name") ?: return@mapNotNull null
+                    val number = doc.getString("number") ?: return@mapNotNull null
+                    val month = doc.getString("month") ?: return@mapNotNull null
+                    val year = doc.getString("year") ?: return@mapNotNull null
+                    val pin = doc.getString("pin") ?: return@mapNotNull null
+                    val nickname = doc.getString("nickname") ?: return@mapNotNull null
+                    val saveCard = doc.getBoolean("saveCard") ?: true
+
+                    CardInfo(
+                        id = doc.id,
+                        type = CardType.valueOf(type),
+                        name = name,
+                        number = number,
+                        month = month,
+                        year = year,
+                        pin = pin,
+                        nickname = nickname,
+                        saveCard = saveCard
+                    )
+                }
+                cards.clear()
+                cards.addAll(loadedCards)
+            }
+    }
 
     // Fetch availability data when origin changes
     LaunchedEffect(origin) {
@@ -287,7 +323,24 @@ fun PaymentScreen(navController: NavController) {
             cards           = cards,
             selectedCardId  = selectedCardId,
             onCardSelected  = { selectedCardId = it },
-            onAddCard       = { cards.add(it); selectedCardId = it.id },
+            onAddCard       = {
+                cards.add(it)
+                selectedCardId = it.id
+
+                val cardMap = hashMapOf(
+                    "type" to it.type.name,
+                    "name" to it.name,
+                    "number" to it.number,
+                    "month" to it.month,
+                    "year" to it.year,
+                    "pin" to it.pin,
+                    "nickname" to it.nickname,
+                    "saveCard" to it.saveCard
+                )
+                db.collection("users").document(uid)
+                    .collection("cards").document(it.id)
+                    .set(cardMap)
+            },
             onDismiss       = { showCardManager = false },
             modifier        = Modifier.fillMaxSize().zIndex(2f)
         )
