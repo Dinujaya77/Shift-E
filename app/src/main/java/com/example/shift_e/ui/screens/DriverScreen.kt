@@ -32,13 +32,16 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.shift_e.R
-import com.example.shift_e.ui.components.BottomNavBar
 import com.google.android.gms.location.*
 import java.util.concurrent.TimeUnit
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
+import java.text.SimpleDateFormat
+import java.util.*
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun DriverScreen(navController: NavController, username: String = "user") {
+fun DriverScreen(navController: NavController) {
     val context = LocalContext.current
 
     var speedKmph by remember { mutableStateOf(0.0) }
@@ -249,6 +252,31 @@ fun DriverScreen(navController: NavController, username: String = "user") {
 
                 OutlinedButton(
                     onClick = {
+                        val uid = FirebaseAuth.getInstance().currentUser?.uid
+                        if (uid != null) {
+                            val db = FirebaseFirestore.getInstance()
+
+                            // Format current date and time
+                            val now = Date()
+                            val dateFormat = SimpleDateFormat("dd MMM", Locale.getDefault())
+                            val timeFormat = SimpleDateFormat("HH:mm", Locale.getDefault())
+                            val dateStr = dateFormat.format(now)
+                            val timeStr = timeFormat.format(now)
+
+                            // Get last known location from trip data or fallback
+                            val locationName = "NSBM"
+
+                            val activityData = hashMapOf(
+                                "date" to dateStr,
+                                "time" to timeStr,
+                                "location" to locationName
+                            )
+
+                            db.collection("users").document(uid)
+                                .collection("activities")
+                                .add(activityData)
+                        }
+
                         navController.popBackStack()
                         navController.popBackStack()
                     },
@@ -259,6 +287,7 @@ fun DriverScreen(navController: NavController, username: String = "user") {
                 ) {
                     Text("End Trip", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 16.sp)
                 }
+
 
                 Spacer(modifier = Modifier.height(20.dp))
             }
