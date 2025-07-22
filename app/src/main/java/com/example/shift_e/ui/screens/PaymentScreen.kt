@@ -2,6 +2,7 @@ package com.example.shift_e.ui.screens
 
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ChevronRight
@@ -13,12 +14,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.*
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.*
 import androidx.compose.ui.zIndex
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.shift_e.R
+import com.example.shift_e.model.getProfileImageRes
 import com.example.shift_e.ui.components.BottomNavBar
 import com.example.shift_e.ui.components.BoxContainer
 import com.example.shift_e.ui.components.CardInfo
@@ -27,6 +31,7 @@ import com.example.shift_e.ui.components.PaymentCardManager
 import com.example.shift_e.ui.components.PaymentMethodPopup
 import com.example.shift_e.ui.enums.PaymentOption
 import com.example.shift_e.ui.theme.*
+import com.example.shift_e.ui.viewmodel.UserViewModel
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 
@@ -38,6 +43,13 @@ fun PaymentScreen(navController: NavController, originArg: String) {
 
     val normalizedOrigin = originArg.lowercase() // force lowercase for consistency
     val normalizedDestination = if (normalizedOrigin == "nsbm") "school_junction" else "nsbm"
+
+    val userViewModel: UserViewModel = viewModel()
+    val user by userViewModel.userData.collectAsState()
+    LaunchedEffect(Unit) {
+        userViewModel.loadUserData()
+    }
+
 
     var origin by remember { mutableStateOf(normalizedOrigin) }
     var destination by remember { mutableStateOf(normalizedDestination) }
@@ -123,12 +135,14 @@ fun PaymentScreen(navController: NavController, originArg: String) {
                     actions = {
                         IconButton(onClick = { navController.navigate("profile") }) {
                             Image(
-                                painter = painterResource(R.drawable.ic_profile),
+                                painter = painterResource(user.getProfileImageRes()),
                                 contentDescription = "Profile",
                                 modifier = Modifier
                                     .size(40.dp)
-                                    .clip(MaterialTheme.shapes.small)
-                                    .padding(4.dp),
+                                    .clip(CircleShape)
+                                    .border(1.dp, Color.Gray, CircleShape)
+                                    .padding(2.dp),
+                                contentScale = ContentScale.Crop
                             )
                         }
                     }

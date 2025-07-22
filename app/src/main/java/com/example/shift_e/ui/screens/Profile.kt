@@ -26,6 +26,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.shift_e.R
+import com.example.shift_e.model.getProfileImageRes
 import com.example.shift_e.ui.components.BottomNavBar
 import com.example.shift_e.ui.viewmodel.UserViewModel
 
@@ -74,7 +75,7 @@ fun ProfileScreen(navController: NavController, userViewModel: UserViewModel = v
 
                 // Profile Picture
                 Image(
-                    painter = painterResource(id = R.drawable.profile_picture),
+                    painter = painterResource(user.getProfileImageRes()),
                     contentDescription = "Profile Picture",
                     modifier = Modifier
                         .size(120.dp)

@@ -36,6 +36,7 @@ import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.shift_e.R
+import com.example.shift_e.model.getProfileImageRes
 import com.example.shift_e.ui.components.BottomNavBar
 import com.example.shift_e.ui.theme.*
 import com.example.shift_e.ui.viewmodel.UserViewModel
@@ -114,12 +115,14 @@ fun DashboardScreen(
                     actions = {
                         IconButton(onClick = { navController.navigate("profile") }) {
                             Image(
-                                painter = painterResource(R.drawable.ic_profile),
+                                painter = painterResource(user.getProfileImageRes()),
                                 contentDescription = "Profile",
                                 modifier = Modifier
                                     .size(40.dp)
-                                    .clip(MaterialTheme.shapes.small)
-                                    .padding(4.dp),
+                                    .clip(CircleShape)
+                                    .border(1.dp, Color.Gray, CircleShape)
+                                    .padding(2.dp),
+                                contentScale = ContentScale.Crop
                             )
                         }
                     }

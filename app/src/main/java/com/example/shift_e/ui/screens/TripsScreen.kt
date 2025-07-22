@@ -4,10 +4,12 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DirectionsBike
@@ -28,8 +30,10 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.shift_e.R
+import com.example.shift_e.model.getProfileImageRes
 import com.example.shift_e.ui.components.BottomNavBar
 import com.example.shift_e.ui.theme.GreenDark
 import com.example.shift_e.ui.theme.GreenExtraLight
@@ -37,6 +41,7 @@ import com.example.shift_e.ui.theme.GreenLight
 import com.example.shift_e.ui.theme.GreenPrimary
 import com.example.shift_e.ui.theme.ShadedWhite
 import com.example.shift_e.ui.theme.TealDark
+import com.example.shift_e.ui.viewmodel.UserViewModel
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import java.util.*
@@ -60,6 +65,12 @@ fun TripsScreen(navController: NavController, username: String = "User") {
     val ratings          = remember { mutableStateMapOf<String, Int>() }
     var showRatingTripId by remember { mutableStateOf<String?>(null) }
     var tempRating       by remember { mutableStateOf(0) }
+
+    val userViewModel: UserViewModel = viewModel()
+    val user by userViewModel.userData.collectAsState()
+    LaunchedEffect(Unit) {
+        userViewModel.loadUserData()
+    }
 
     // Fetch trips
     LaunchedEffect(uid) {
@@ -117,12 +128,14 @@ fun TripsScreen(navController: NavController, username: String = "User") {
                     actions = {
                         IconButton(onClick = { navController.navigate("profile") }) {
                             Image(
-                                painter           = painterResource(R.drawable.ic_profile),
+                                painter = painterResource(user.getProfileImageRes()),
                                 contentDescription = "Profile",
-                                modifier          = Modifier
+                                modifier = Modifier
                                     .size(40.dp)
-                                    .clip(MaterialTheme.shapes.small)
-                                    .padding(4.dp)
+                                    .clip(CircleShape)
+                                    .border(1.dp, Color.Gray, CircleShape)
+                                    .padding(2.dp),
+                                contentScale = ContentScale.Crop
                             )
                         }
                     }
