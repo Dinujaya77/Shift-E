@@ -189,7 +189,7 @@ fun DashboardScreen(
                                     Card(
                                         modifier = Modifier.fillMaxWidth(),
                                         shape = RoundedCornerShape(18.dp),
-                                        colors = CardDefaults.cardColors(containerColor = Color.White),
+                                        colors = CardDefaults.cardColors(containerColor = Color.White.copy(alpha = 0.7f)),
                                         elevation = CardDefaults.cardElevation(4.dp)
                                     ) {
                                         Row(
