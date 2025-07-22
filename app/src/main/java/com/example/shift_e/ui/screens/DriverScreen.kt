@@ -10,8 +10,9 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowUpward
 import androidx.compose.material3.*
@@ -40,7 +41,6 @@ import java.util.concurrent.TimeUnit
 fun DriverScreen(navController: NavController, username: String = "user") {
     val context = LocalContext.current
 
-    // State holders
     var speedKmph by remember { mutableStateOf(0.0) }
     var distanceTraveled by remember { mutableStateOf(0.0) }
     var tripStartTime by remember { mutableStateOf(System.currentTimeMillis()) }
@@ -48,11 +48,9 @@ fun DriverScreen(navController: NavController, username: String = "user") {
     var cost by remember { mutableStateOf(50) }
     var lastLocation by remember { mutableStateOf<Location?>(null) }
 
-    // Orientation
     var azimuth by remember { mutableStateOf(0f) }
     val rotationDegrees by animateFloatAsState(targetValue = -azimuth, label = "arrow_rotation")
 
-    // Location tracking
     val fusedLocationClient = remember {
         LocationServices.getFusedLocationProviderClient(context)
     }
@@ -65,7 +63,6 @@ fun DriverScreen(navController: NavController, username: String = "user") {
         }
     }
 
-    // Start location updates
     DisposableEffect(Unit) {
         val callback = object : LocationCallback() {
             override fun onLocationResult(result: LocationResult) {
@@ -88,7 +85,6 @@ fun DriverScreen(navController: NavController, username: String = "user") {
         }
     }
 
-    // Register orientation sensors
     DisposableEffect(Unit) {
         val sensorManager = context.getSystemService(Context.SENSOR_SERVICE) as SensorManager
         val accel = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
@@ -127,7 +123,6 @@ fun DriverScreen(navController: NavController, username: String = "user") {
         }
     }
 
-    // UI background
     val gradientBackground = Brush.verticalGradient(
         colors = listOf(Color(0xFF3C5E45), Color(0xFF6D9F7B), Color(0xFF1B1B1B))
     )
@@ -139,49 +134,32 @@ fun DriverScreen(navController: NavController, username: String = "user") {
     ) {
         Scaffold(
             containerColor = Color.Transparent,
-            bottomBar = {}
+            bottomBar = { BottomNavBar(navController) }
         ) { padding ->
             Column(
                 modifier = Modifier
                     .padding(padding)
                     .fillMaxSize()
-                    .padding(horizontal = 24.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp)
+                    .verticalScroll(rememberScrollState())
+                    .padding(horizontal = 24.dp, vertical = 16.dp),
+                verticalArrangement = Arrangement.spacedBy(20.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Spacer(modifier = Modifier.height(16.dp))
+                Text(
+                    text = "Trip Information",
+                    fontSize = 26.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.Black
+                )
 
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = "Trip Information",
-                        fontSize = 22.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color.Black
-                    )
-                    Image(
-                        painter = painterResource(R.drawable.ic_profile),
-                        contentDescription = "Profile",
-                        modifier = Modifier
-                            .size(40.dp)
-                            .clip(CircleShape)
-                            .clickable {
-                                navController.navigate("profile/$username")
-                            }
-                    )
-                }
-
-                // Trip Stats
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
-                    Column {
-                        Text("🏁 1.8km", color = Color.White, fontSize = 18.sp)
-                        Text("DUR $durationMinutes mins", color = Color.White, fontSize = 14.sp)
-                        Text("Dist ${"%.2f".format(distanceTraveled / 1000)} km", color = Color.White, fontSize = 14.sp)
+                    Column(horizontalAlignment = Alignment.Start) {
+                        Text("\uD83C\uDFC1 1.8 km", color = Color.White, fontSize = 18.sp)
+                        Text("Duration: $durationMinutes mins", color = Color.White, fontSize = 14.sp)
+                        Text("Distance: ${"%.2f".format(distanceTraveled / 1000)} km", color = Color.White, fontSize = 14.sp)
                     }
 
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -199,32 +177,27 @@ fun DriverScreen(navController: NavController, username: String = "user") {
                             imageVector = Icons.Default.ArrowUpward,
                             contentDescription = "Direction",
                             tint = Color.White,
-                            modifier = Modifier
-                                .size(48.dp)
-                                .rotate(rotationDegrees)
+                            modifier = Modifier.size(48.dp).rotate(rotationDegrees)
                         )
                         Text("${"%.2f".format(distanceTraveled / 1000)} km", color = Color.White, fontSize = 14.sp)
                     }
                 }
 
-                // Cost Info
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(vertical = 8.dp)
                         .background(Color(0xFF1B3C1A), RoundedCornerShape(20.dp))
-                        .padding(vertical = 12.dp),
+                        .padding(16.dp),
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
                         text = "Cost: LKR $cost",
-                        fontSize = 18.sp,
+                        fontSize = 20.sp,
                         fontWeight = FontWeight.Bold,
                         color = Color.White
                     )
                 }
 
-                // Warning
                 Card(
                     colors = CardDefaults.cardColors(containerColor = Color(0xFF520000)),
                     shape = RoundedCornerShape(12.dp),
@@ -242,42 +215,37 @@ fun DriverScreen(navController: NavController, username: String = "user") {
                         )
                         Spacer(modifier = Modifier.height(8.dp))
                         Text(
-                            text = "After exceeding the limit of the\nschool junction drop off point cost\nwill be added with respect to\nDistance and Time.",
+                            text = "After exceeding the limit of the school junction drop off point cost will be added with respect to Distance and Time.",
                             color = Color.White,
                             fontSize = 14.sp,
-                            textAlign = TextAlign.Center,
-                            modifier = Modifier.fillMaxWidth()
+                            textAlign = TextAlign.Center
                         )
                     }
                 }
 
-                // Payment Method
                 Card(
-                    colors = CardDefaults.cardColors(containerColor = Color(0xFF1A2E28)),
-                    shape = RoundedCornerShape(16.dp),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 8.dp)
+                    colors = CardDefaults.cardColors(containerColor = Color(0xFF2D4D3A)),
+                    shape = RoundedCornerShape(20.dp),
+                    modifier = Modifier.fillMaxWidth()
                 ) {
                     Column(
-                        modifier = Modifier.padding(16.dp),
-                        horizontalAlignment = Alignment.Start
+                        modifier = Modifier.padding(20.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        Text("Payment Method", color = Color.White, fontWeight = FontWeight.SemiBold)
-                        Spacer(modifier = Modifier.height(12.dp))
+                        Text("Selected Payment Method", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 18.sp)
+                        Spacer(modifier = Modifier.height(16.dp))
                         Image(
                             painter = painterResource(id = R.drawable.card_2),
                             contentDescription = "Visa Card",
                             modifier = Modifier
-                                .fillMaxWidth()
-                                .height(100.dp)
-                                .clip(RoundedCornerShape(16.dp)),
-                            contentScale = ContentScale.Crop
+                                .clip(RoundedCornerShape(16.dp))
+                                .fillMaxWidth(),
+                            contentScale = ContentScale.FillWidth
                         )
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text("VISA •••• 1234", color = Color.White.copy(alpha = 0.8f), fontSize = 14.sp)
                     }
                 }
-
-                Spacer(modifier = Modifier.height(50.dp))
 
                 OutlinedButton(
                     onClick = {
@@ -286,13 +254,13 @@ fun DriverScreen(navController: NavController, username: String = "user") {
                     },
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(vertical = 12.dp)
                         .height(56.dp),
                     colors = ButtonDefaults.outlinedButtonColors(containerColor = Color(0xFF520000))
                 ) {
                     Text("End Trip", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 16.sp)
                 }
 
+                Spacer(modifier = Modifier.height(20.dp))
             }
         }
     }
