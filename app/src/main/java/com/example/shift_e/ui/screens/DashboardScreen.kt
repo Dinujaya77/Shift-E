@@ -186,7 +186,7 @@ fun DashboardScreen(
                                     color = Color.White)
                                 Spacer(modifier = Modifier.height(10.dp))
                                 Button(
-                                    onClick = { navController.navigate("payment") },
+                                    onClick = { navController.navigate("payment?origin=${loc.id}") },
                                     colors = ButtonDefaults.buttonColors(containerColor = Color.Black),
                                     modifier = Modifier.fillMaxWidth()
                                 ) {
@@ -253,7 +253,7 @@ fun DashboardScreen(
                                             }
 
                                             Button(
-                                                onClick = { navController.navigate("payment") },
+                                                onClick = { navController.navigate("payment?origin=${activity.location}") },
                                                 colors = ButtonDefaults.buttonColors(containerColor = Color.Black),
                                                 shape = RoundedCornerShape(50)
                                             ) {
