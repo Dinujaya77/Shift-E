@@ -19,11 +19,11 @@ fun AppNavGraph(navController: NavHostController, startDestination: String = "lo
             SignUpScreen(navController)
         }
         composable(
-            route = "payment?origin={origin}",
-            arguments = listOf(navArgument("origin") { defaultValue = "nsbm" })
-        ) { backStackEntry ->
-            val origin = backStackEntry.arguments?.getString("origin") ?: "nsbm"
-            PaymentScreen(navController, origin)
+            "signup_otp?email={email}",
+            arguments = listOf(navArgument("email") { defaultValue = "" })
+        ) { backStack ->
+            val email = backStack.arguments?.getString("email") ?: ""
+            SignUpOtpScreen(navController, email)
         }
         composable("profilecreation") {
             ProfileCreationScreen(navController)
