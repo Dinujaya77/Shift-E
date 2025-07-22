@@ -134,7 +134,7 @@ fun DriverScreen(navController: NavController, username: String = "user") {
     ) {
         Scaffold(
             containerColor = Color.Transparent,
-            bottomBar = { BottomNavBar(navController) }
+            bottomBar = {  }
         ) { padding ->
             Column(
                 modifier = Modifier
