@@ -211,7 +211,7 @@ fun TripsScreen(navController: NavController, username: String = "User") {
                                                     Text("Rate", color = Color.White)
                                                 }
                                                 Button(
-                                                    onClick = { navController.navigate("payment") },
+                                                    onClick = { navController.navigate("payment?origin=${trip.location}") },
                                                     modifier = Modifier.weight(1f),
                                                     colors   = ButtonDefaults.buttonColors(containerColor = Color.Black)
                                                 ) {

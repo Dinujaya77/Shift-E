@@ -31,8 +31,12 @@ fun AppNavGraph(navController: NavHostController, startDestination: String = "lo
         composable("trips") {
             TripsScreen(navController)
         }
-        composable("payment") {
-            PaymentScreen(navController)
+        composable(
+            "payment?origin={origin}",
+            arguments = listOf(navArgument("origin") { defaultValue = "NSBM" })
+        ) { backStackEntry ->
+            val origin = backStackEntry.arguments?.getString("origin") ?: "NSBM"
+            PaymentScreen(navController, origin)
         }
         composable("qrscanner") {
             QrScannerScreen(navController)
