@@ -86,7 +86,7 @@ fun ProfileScreen(navController: NavController, userViewModel: UserViewModel = v
 
                 // Name
                 Text(
-                    text = user.firstName,
+                    text = user.firstName+" " +user.lastName,
                     fontSize = 26.sp,
                     fontWeight = FontWeight.ExtraBold,
                     color = Color.White
@@ -112,6 +112,13 @@ fun ProfileScreen(navController: NavController, userViewModel: UserViewModel = v
                         Spacer(modifier = Modifier.height(8.dp))
                         Text(
                             text = "Phone: ${user.mobile}",
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Medium,
+                            color = Color.White
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(
+                            text = "DOB: ${user.birthday}",
                             fontSize = 16.sp,
                             fontWeight = FontWeight.Medium,
                             color = Color.White
