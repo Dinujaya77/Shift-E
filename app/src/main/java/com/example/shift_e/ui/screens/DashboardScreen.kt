@@ -26,8 +26,10 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -50,6 +52,7 @@ fun DashboardScreen(
     userViewModel: UserViewModel = viewModel()
 ) {
     val user by userViewModel.userData.collectAsState()
+    val context = LocalContext.current
     val db = FirebaseFirestore.getInstance()
     val uid = FirebaseAuth.getInstance().currentUser?.uid
 
@@ -92,16 +95,14 @@ fun DashboardScreen(
         )
     )
 
-    Box(modifier = Modifier
-        .fillMaxSize()
-        .background(brush = backgroundBrush)) {
+    Box(modifier = Modifier.fillMaxSize().background(brush = backgroundBrush)) {
         Scaffold(
             containerColor = Color.Transparent,
             topBar = {
                 TopAppBar(
                     title = {
                         Text(
-                            "Welcome back, ${user.firstName}",
+                            stringResource(R.string.welcome_back, user.firstName),
                             style = MaterialTheme.typography.titleLarge.copy(
                                 fontWeight = FontWeight.Bold,
                                 fontSize = 25.sp
@@ -116,12 +117,8 @@ fun DashboardScreen(
                         IconButton(onClick = { navController.navigate("profile") }) {
                             Image(
                                 painter = painterResource(user.getProfileImageRes()),
-                                contentDescription = "Profile",
-                                modifier = Modifier
-                                    .size(40.dp)
-                                    .clip(CircleShape)
-                                    .border(1.dp, Color.Gray, CircleShape)
-                                    .padding(2.dp),
+                                contentDescription = stringResource(R.string.profile_desc),
+                                modifier = Modifier.size(40.dp).clip(CircleShape).border(1.dp, Color.Gray, CircleShape).padding(2.dp),
                                 contentScale = ContentScale.Crop
                             )
                         }
@@ -131,101 +128,61 @@ fun DashboardScreen(
             bottomBar = { BottomNavBar(navController) }
         ) { padding ->
             LazyColumn(
-                modifier = Modifier
-                    .padding(padding)
-                    .fillMaxSize()
-                    .padding(horizontal = 16.dp),
+                modifier = Modifier.padding(padding).fillMaxSize().padding(horizontal = 16.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 item { Spacer(modifier = Modifier.height(1.dp)) }
 
                 item {
                     Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(200.dp)
-                            .clip(RoundedCornerShape(16.dp))
+                        modifier = Modifier.fillMaxWidth().height(200.dp).clip(RoundedCornerShape(16.dp))
                     ) {
                         Image(
                             painter = painterResource(id = R.drawable.map_placeholder),
-                            contentDescription = "Map",
+                            contentDescription = stringResource(R.string.map_desc),
                             modifier = Modifier.matchParentSize(),
                             contentScale = ContentScale.Crop,
                             alpha = 0.95f
                         )
                         locations.getOrNull(1)?.let {
-                            MapPointer(
-                                x = 60.dp,
-                                y = 40.dp,
-                                location = it
-                            ) { selectedLocation = it }
+                            MapPointer(x = 60.dp, y = 40.dp, location = it) { selectedLocation = it }
                         }
                         locations.getOrNull(0)?.let {
-                            MapPointer(
-                                x = 250.dp,
-                                y = 100.dp,
-                                location = it
-                            ) { selectedLocation = it }
+                            MapPointer(x = 250.dp, y = 100.dp, location = it) { selectedLocation = it }
                         }
                     }
                 }
-
-                item { Spacer(modifier = Modifier.height(0.2.dp)) }
 
                 item {
                     selectedLocation?.let { loc ->
                         MinimalCard(modifier = Modifier.fillMaxWidth()) {
                             Column(modifier = Modifier.padding(12.dp)) {
-                                Text(
-                                    "Rides from ${loc.name}",
-                                    fontSize = 16.sp,
-                                    fontWeight = FontWeight.SemiBold,
-                                    color = Color.White
-                                )
+                                Text(stringResource(R.string.rides_from, loc.name), fontSize = 16.sp, fontWeight = FontWeight.SemiBold, color = Color.White)
                                 Spacer(modifier = Modifier.height(6.dp))
-                                Text("Rides Available: ${loc.ridesAvailable}", fontSize = 14.sp,
-                                    color = Color.White)
-                                Text("Est. Price: LKR 50", fontSize = 14.sp,
-                                    color = Color.White)
+                                Text(stringResource(R.string.rides_available, loc.ridesAvailable), fontSize = 14.sp, color = Color.White)
+                                Text(stringResource(R.string.estimated_price), fontSize = 14.sp, color = Color.White)
                                 Spacer(modifier = Modifier.height(10.dp))
-                                Button(
-                                    onClick = { navController.navigate("payment?origin=${loc.id}") },
-                                    colors = ButtonDefaults.buttonColors(containerColor = Color.Black),
-                                    modifier = Modifier.fillMaxWidth()
-                                ) {
-                                    Text("Book Now", color = Color.White)
+                                Button(onClick = { navController.navigate("payment?origin=${loc.id}") }, colors = ButtonDefaults.buttonColors(containerColor = Color.Black), modifier = Modifier.fillMaxWidth()) {
+                                    Text(stringResource(R.string.book_now), color = Color.White)
                                 }
                             }
                         }
                     }
                 }
 
-                item { Spacer(modifier = Modifier.height(0.2.dp)) }
-
                 item {
-                    Text("Promotions", fontSize = 20.sp, fontWeight = FontWeight.SemiBold)
+                    Text(stringResource(R.string.promotions), fontSize = 20.sp, fontWeight = FontWeight.SemiBold)
                 }
-                item {
-                    PromotionCard()
-                }
+                item { PromotionCard() }
 
                 item {
                     Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .background(Color(0xFF10382A), shape = RoundedCornerShape(24.dp))
-                            .padding(20.dp)
+                        modifier = Modifier.fillMaxWidth().background(Color(0xFF10382A), shape = RoundedCornerShape(24.dp)).padding(20.dp)
                     ) {
-                        Text(
-                            text = "Activity",
-                            fontSize = 20.sp,
-                            fontWeight = FontWeight.SemiBold,
-                            color = Color.White,
-                            modifier = Modifier.padding(bottom = 16.dp)
-                        )
+                        Text(text = stringResource(R.string.activity), fontSize = 20.sp, fontWeight = FontWeight.SemiBold, color = Color.White, modifier = Modifier.padding(bottom = 16.dp))
 
                         if (activities.isEmpty()) {
-                            Text("No recent rides.", color = Color.Black, fontSize = 16.sp)
+                            Text(stringResource(R.string.no_recent_rides), color = Color.Black, fontSize = 16.sp)
                         } else {
                             Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
                                 activities.forEach { activity ->
@@ -236,44 +193,18 @@ fun DashboardScreen(
                                         elevation = CardDefaults.cardElevation(4.dp)
                                     ) {
                                         Row(
-                                            modifier = Modifier
-                                                .padding(16.dp)
-                                                .fillMaxWidth(),
+                                            modifier = Modifier.padding(16.dp).fillMaxWidth(),
                                             horizontalArrangement = Arrangement.SpaceBetween,
                                             verticalAlignment = Alignment.CenterVertically
                                         ) {
                                             Column {
-                                                Text(
-                                                    activity.location,
-                                                    fontWeight = FontWeight.Medium,
-                                                    fontSize = 15.sp
-                                                )
-                                                Text(
-                                                    "${activity.date} • ${activity.time}",
-                                                    fontSize = 12.sp,
-                                                    color = Color.Gray
-                                                )
+                                                Text(activity.location, fontWeight = FontWeight.Medium, fontSize = 15.sp)
+                                                Text("${activity.date} • ${activity.time}", fontSize = 12.sp, color = Color.Gray)
                                             }
-
-                                            Button(
-                                                onClick = { navController.navigate("payment?origin=${activity.location}") },
-                                                colors = ButtonDefaults.buttonColors(containerColor = Color.Black),
-                                                shape = RoundedCornerShape(50)
-                                            ) {
+                                            Button(onClick = { navController.navigate("payment?origin=${activity.location}") }, colors = ButtonDefaults.buttonColors(containerColor = Color.Black), shape = RoundedCornerShape(50)) {
                                                 Row(verticalAlignment = Alignment.CenterVertically) {
-                                                    Text(
-                                                        "Re-book",
-                                                        color = Color.White,
-                                                        fontSize = 12.sp
-                                                    )
-                                                    Icon(
-                                                        Icons.Default.Refresh,
-                                                        contentDescription = null,
-                                                        tint = Color.White,
-                                                        modifier = Modifier
-                                                            .size(14.dp)
-                                                            .padding(start = 4.dp)
-                                                    )
+                                                    Text(stringResource(R.string.rebook), color = Color.White, fontSize = 12.sp)
+                                                    Icon(Icons.Default.Refresh, contentDescription = null, tint = Color.White, modifier = Modifier.size(14.dp).padding(start = 4.dp))
                                                 }
                                             }
                                         }
