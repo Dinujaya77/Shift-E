@@ -104,9 +104,10 @@ fun ProfileCreationScreen(navController: NavController) {
                 .background(CreamBackground)
                 .verticalScroll(rememberScrollState())
                 .padding(24.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
+            horizontalAlignment = Alignment.Start
         ) {
             Text("First Name", color = BlackLight, style = MaterialTheme.typography.titleMedium)
+            Spacer(Modifier.height(4.dp))
             PillTextField(
                 value = firstName,
                 onValueChange = { firstName = it },
@@ -119,6 +120,7 @@ fun ProfileCreationScreen(navController: NavController) {
             Spacer(Modifier.height(16.dp))
 
             Text("Last Name", color = BlackLight, style = MaterialTheme.typography.titleMedium)
+            Spacer(Modifier.height(4.dp))
             PillTextField(
                 value = lastName,
                 onValueChange = { lastName = it },
@@ -130,7 +132,8 @@ fun ProfileCreationScreen(navController: NavController) {
             )
             Spacer(Modifier.height(16.dp))
 
-            Text("BirthDay", color = BlackLight, style = MaterialTheme.typography.titleMedium)
+            Text("Birth Date", color = BlackLight, style = MaterialTheme.typography.titleMedium)
+            Spacer(Modifier.height(4.dp))
             PillTextField(
                 value = birthday,
                 onValueChange = {},
@@ -142,6 +145,7 @@ fun ProfileCreationScreen(navController: NavController) {
             Spacer(Modifier.height(16.dp))
 
             Text("Gender", color = BlackLight, style = MaterialTheme.typography.titleMedium)
+            Spacer(Modifier.height(4.dp))
             Box(Modifier.fillMaxWidth()) {
                 PillTextField(
                     value = gender,
@@ -173,6 +177,7 @@ fun ProfileCreationScreen(navController: NavController) {
             Spacer(Modifier.height(16.dp))
 
             Text("Mobile Number", color = BlackLight, style = MaterialTheme.typography.titleMedium)
+            Spacer(Modifier.height(4.dp))
             PillTextField(
                 value = mobile,
                 onValueChange = { mobile = it },

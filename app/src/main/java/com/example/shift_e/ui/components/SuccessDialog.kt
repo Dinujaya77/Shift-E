@@ -71,20 +71,6 @@ fun SuccessDialog(
                 Text(buttonText)
             }
             Spacer(Modifier.height(12.dp))
-            OutlinedButton(
-                onClick = onDismiss,
-                shape = RoundedCornerShape(50),
-                colors = ButtonDefaults.outlinedButtonColors(
-                    contentColor = TealDark,
-                    containerColor = CreamBackground
-                ),
-                border = ButtonDefaults.outlinedButtonBorder.copy(width = 1.dp),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(48.dp)
-            ) {
-                Text("CANCEL")
-            }
         }
     }
 }
