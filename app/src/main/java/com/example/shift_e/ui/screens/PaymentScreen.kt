@@ -2,10 +2,9 @@ package com.example.shift_e.ui.screens
 
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.SwapVert
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -17,11 +16,14 @@ import androidx.compose.ui.graphics.*
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.*
+import androidx.compose.ui.zIndex
 import androidx.navigation.NavController
 import com.example.shift_e.R
 import com.example.shift_e.ui.components.BottomNavBar
 import com.example.shift_e.ui.components.BoxContainer
-import com.example.shift_e.ui.components.PaymentMethodDialog
+import com.example.shift_e.ui.components.CardInfo
+import com.example.shift_e.ui.components.PaymentCardManager
+import com.example.shift_e.ui.components.PaymentMethodPopup
 import com.example.shift_e.ui.enums.PaymentOption
 import com.example.shift_e.ui.theme.*
 import com.google.firebase.firestore.FirebaseFirestore
@@ -39,6 +41,9 @@ fun PaymentScreen(navController: NavController) {
     var charging by remember { mutableStateOf(0) }
     var onTheWay by remember { mutableStateOf(0) }
     var loading by remember { mutableStateOf(true) }
+    var showCardManager by remember { mutableStateOf(false) }
+    val cards = remember { mutableStateListOf<CardInfo>() }
+    var selectedCardId by remember { mutableStateOf<String?>(null) }
 
     // Fetch availability data when origin changes
     LaunchedEffect(origin) {
@@ -200,29 +205,30 @@ fun PaymentScreen(navController: NavController) {
                             Text(
                                 when (selectedOption) {
                                     PaymentOption.CARD   -> "Credit / Debit Card"
-                                    PaymentOption.CASH   -> "Cash"
+                                    PaymentOption.WALLET  -> "Wallet"
                                     PaymentOption.PAYPAL -> "PayPal"
                                 },
                                 fontSize = 16.sp, color = Color.White
                             )
                             Spacer(Modifier.height(20.dp))
                             Button(onClick = { showDialog = true }, colors = ButtonDefaults.buttonColors(containerColor = GreenDark)) {
-                                Icon(Icons.Default.Edit, contentDescription = "Edit", tint = Color.White)
+
+                                Text("Choose", color = Color.White)
                                 Spacer(Modifier.width(4.dp))
-                                Text("Edit", color = Color.White)
+                                Icon(Icons.Default.ChevronRight, contentDescription = "Choose", tint = Color.White)
                             }
                         }
 
                         val iconRes = when (selectedOption) {
                             PaymentOption.CARD   -> R.drawable.ic_credit_card
-                            PaymentOption.CASH   -> R.drawable.ic_cash
+                            PaymentOption.WALLET   -> R.drawable.ic_wallet
                             PaymentOption.PAYPAL -> R.drawable.ic_paypal
                         }
 
                         Image(
                             painter = painterResource(iconRes),
                             contentDescription = null,
-                            modifier = Modifier.size(width = 160.dp, height = 100.dp)
+                            modifier = Modifier.size(width = 160.dp, height = 120.dp)
                         )
                     }
                 }
@@ -260,15 +266,31 @@ fun PaymentScreen(navController: NavController) {
                     }
                 }
             }
-
-            if (showDialog) {
-                PaymentMethodDialog(
-                    selectedOption = selectedOption,
-                    onOptionSelected = { selectedOption = it },
-                    onDismiss = { showDialog = false }
-                )
-            }
         }
+    }
+    if (showDialog) {
+        PaymentMethodPopup(
+            selectedOption   = selectedOption,
+            onOptionSelected = { selectedOption = it },
+            onCardDetails    = {
+                showDialog = false
+                showCardManager = true
+            },
+            onDismiss        = { showDialog = false },
+            modifier         = Modifier
+                .fillMaxSize()
+                .zIndex(1f)
+        )
+    }
+    if (showCardManager) {
+        PaymentCardManager(
+            cards           = cards,
+            selectedCardId  = selectedCardId,
+            onCardSelected  = { selectedCardId = it },
+            onAddCard       = { cards.add(it); selectedCardId = it.id },
+            onDismiss       = { showCardManager = false },
+            modifier        = Modifier.fillMaxSize().zIndex(2f)
+        )
     }
 }
 
