@@ -27,13 +27,14 @@ import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.OffsetMapping
+import androidx.compose.ui.text.input.TransformedText
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.shift_e.ui.theme.ForestGreen
-import com.example.shift_e.ui.theme.GreenDark
-import com.example.shift_e.ui.theme.GreenLight
 import com.example.shift_e.ui.theme.GreenPrimary
 import java.util.*
 
@@ -55,6 +56,32 @@ data class CardInfo(
     val nickname: String,
     val saveCard: Boolean
 )
+class CreditCardVisualTransformation : VisualTransformation {
+    override fun filter(text: AnnotatedString): TransformedText {
+        // keep only digits, max 16
+        val digits = text.text.filter(Char::isDigit).take(16)
+        // build grouped string
+        val grouped = buildString {
+            digits.chunked(4).forEachIndexed { i, chunk ->
+                append(chunk)
+                if (i < 3 && chunk.length == 4) append(' ')
+            }
+        }
+        // offset mapper (cursor logic)
+        val translator = object : OffsetMapping {
+            override fun originalToTransformed(offset: Int): Int {
+                val o = offset.coerceIn(0, digits.length)
+                val spacesBefore = o / 4
+                return (o + spacesBefore).coerceAtMost(grouped.length)
+            }
+            override fun transformedToOriginal(offset: Int): Int {
+                val s = (offset / 5).coerceAtMost(3)
+                return (offset - s).coerceAtMost(digits.length)
+            }
+        }
+        return TransformedText(AnnotatedString(grouped), translator)
+    }
+}
 
 // -- Main Component --
 
@@ -163,11 +190,14 @@ private fun AddCardFormContent(
                 onValueChange = { name = it }
             )
 
-            BorderedFormField(
-                label         = "Card Number",
-                text          = number,
-                keyboardType  = KeyboardType.Number,
-                onValueChange = { number = it }
+            BorderedTransformedField(
+                label = "Card Number",
+                text = number,
+                keyboardType = KeyboardType.Number,
+                visualTransformation = CreditCardVisualTransformation(),
+                onValueChange = { raw ->
+                    number = raw.filter(Char::isDigit).take(16)
+                }
             )
             Spacer(Modifier.height(4.dp))
             Text(text = "Expiration Date", color = Color.Black)
@@ -327,7 +357,7 @@ private fun CardRow(
             Text(
                 text = card.nickname.ifBlank { "**** **** ${card.number.takeLast(4)}" },
                 fontSize = 16.sp,
-                color = Color.White
+                color = Color.Black
             )
             Text(text = "(${card.type.displayName})", fontSize = 12.sp, color = Color.Gray)
         }
@@ -336,6 +366,46 @@ private fun CardRow(
             selected = isSelected,
             onClick  = onClick,
             colors   = RadioButtonDefaults.colors(selectedColor = MaterialTheme.colorScheme.primary)
+        )
+    }
+}
+
+@Composable
+private fun BorderedTransformedField(
+    label: String,
+    text: String,
+    keyboardType: KeyboardType = KeyboardType.Text,
+    visualTransformation: VisualTransformation = VisualTransformation.None,
+    onValueChange: (String) -> Unit
+) {
+    var isFocused by remember { mutableStateOf(false) }
+
+    Box(
+        Modifier
+            .fillMaxWidth()
+            .border(
+                width = 1.dp,
+                color = if (isFocused) Color.Black else Color.LightGray,
+                shape = RoundedCornerShape(4.dp)
+            )
+            .padding(12.dp)
+    ) {
+        // placeholder
+        if (text.isEmpty()) {
+            Text(label, color = Color.Gray, modifier = Modifier.align(Alignment.CenterStart))
+        }
+
+        BasicTextField(
+            value = text,
+            onValueChange = onValueChange,
+            singleLine = true,
+            textStyle = LocalTextStyle.current.copy(color = Color.Black, fontSize = 16.sp),
+            cursorBrush = SolidColor(Color.Black),
+            keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
+            visualTransformation = visualTransformation,
+            modifier = Modifier
+                .fillMaxWidth()
+                .onFocusChanged { isFocused = it.isFocused }
         )
     }
 }
