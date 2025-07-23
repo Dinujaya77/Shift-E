@@ -178,7 +178,7 @@ fun LoginScreen(navController: NavController) {
                 fontSize = 14.sp,
                 modifier = Modifier
                     .align(Alignment.End)
-                    .clickable { navController.navigate("forgot_password") }
+                    .clickable { showToast = "Feature under implementation" }
             )
             Spacer(Modifier.height(100.dp))
 
